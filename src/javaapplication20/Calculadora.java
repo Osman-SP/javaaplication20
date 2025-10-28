@@ -1,7 +1,6 @@
 package javaapplication20;
 
 public class Calculadora {
-    String Expresion;
     public float result;
     public String ExprPost;
     public analizadorLexico L; // Instancia del analizador léxico
@@ -159,7 +158,7 @@ public class Calculadora {
                         if (token == 80) { // Debe seguir un ')'
                             
                             //Calculo del valor
-                            v.flotante = aplicarFuncionTrigonometrica(nombreFuncion, v.flotante);
+                            v.flotante = aplicarFuncion(nombreFuncion, v.flotante);
                             // Generación de Postfijo
                             Post.valor = Post.valor + " " + nombreFuncion; 
                             return true;
@@ -189,7 +188,7 @@ public class Calculadora {
     /** * Aplica la función trigonométrica al valor dado, 
      * convirtiendo la entrada de grados a radianes antes del cálculo. 
      */
-    private float aplicarFuncionTrigonometrica(String func, float valor) {
+    private float aplicarFuncion(String func, float valor) {
         
         // --- CONVERSIÓN DE GRADOS A RADIANES ---
         valor = (float) Math.toRadians(valor); 
@@ -230,6 +229,10 @@ public class Calculadora {
             case "acsc":
                 // acsc(x) = asin(1/x)
                 return (float) Math.asin(1.0 / valor);
+            case "log":
+                return (float) Math.log(Math.toDegrees(valor));
+            case "ln":
+                return (float) Math.log10(Math.toDegrees(valor));
             default:
                 // Error o función no reconocida
                 return Float.NaN; 
