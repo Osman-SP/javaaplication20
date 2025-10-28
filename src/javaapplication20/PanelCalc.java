@@ -4,6 +4,8 @@
  */
 package javaapplication20;
 
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author osman
@@ -36,9 +38,9 @@ public class PanelCalc extends javax.swing.JPanel {
         txtSigma = new javax.swing.JTextField();
         jButton2 = new javax.swing.JButton();
         jLabel4 = new javax.swing.JLabel();
-        jPanel2 = new javax.swing.JPanel();
         jLabel5 = new javax.swing.JLabel();
-        jPanel3 = new javax.swing.JPanel();
+        lblPosfijo = new javax.swing.JLabel();
+        lblResultado = new javax.swing.JLabel();
 
         setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
         setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -102,40 +104,16 @@ public class PanelCalc extends javax.swing.JPanel {
         jLabel4.setText("Resultado:");
         add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 300, -1, -1));
 
-        jPanel2.setBackground(new java.awt.Color(255, 255, 255));
-        jPanel2.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 266, Short.MAX_VALUE)
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 16, Short.MAX_VALUE)
-        );
-
-        add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 300, 270, 20));
-
         jLabel5.setText("Posfijo:");
         add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 350, -1, -1));
 
-        jPanel3.setBackground(new java.awt.Color(255, 255, 255));
-        jPanel3.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        lblPosfijo.setBackground(new java.awt.Color(255, 255, 255));
+        lblPosfijo.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        add(lblPosfijo, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 350, 270, 20));
 
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 266, Short.MAX_VALUE)
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 16, Short.MAX_VALUE)
-        );
-
-        add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 350, -1, -1));
+        lblResultado.setBackground(new java.awt.Color(255, 255, 255));
+        lblResultado.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        add(lblResultado, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 300, 270, 20));
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -166,7 +144,13 @@ public class PanelCalc extends javax.swing.JPanel {
         
         try {
             analizadorLexico analizador = new analizadorLexico(cadena, this.rutaArchivoAFD);
-
+            Calculadora calculadora = new Calculadora(analizador);
+            if (calculadora.iniEval()) {
+                lblResultado.setText(Float.toString(calculadora.result));
+                lblPosfijo.setText(calculadora.ExprPost);
+            } else {
+                JOptionPane.showMessageDialog(this, "La expresión es inválida");
+            }
             
 
         } catch (Exception e) {
@@ -184,8 +168,8 @@ public class PanelCalc extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
+    private javax.swing.JLabel lblPosfijo;
+    private javax.swing.JLabel lblResultado;
     private javax.swing.JTextField txtRutaArchivo;
     private javax.swing.JTextField txtSigma;
     // End of variables declaration//GEN-END:variables

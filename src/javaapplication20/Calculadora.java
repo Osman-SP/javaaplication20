@@ -6,6 +6,12 @@ public class Calculadora {
     public analizadorLexico L; // Instancia del analizador léxico
 
     // ... Constructor de Calculadora ...
+    
+    public Calculadora(analizadorLexico analizador){
+        this.L = analizador;
+        this.result = 0.0f;
+        this.ExprPost = "";
+    }
 
     public boolean iniEval(){
         int token;
