@@ -1,18 +1,23 @@
 package javaapplication20;
 
 public class Calculadora {
+    public String expresion;
     public float result;
     public String ExprPost;
     public analizadorLexico L; // Instancia del analizador léxico
 
     // ... Constructor de Calculadora ...
     
-    public Calculadora(analizadorLexico analizador){
-        this.L = analizador;
-        this.result = 0.0f;
-        this.ExprPost = "";
+    public Calculadora(String sigma, String AFD){
+        expresion = sigma;
+        L = new analizadorLexico(expresion, AFD);
     }
 
+    public void setExpresion(String sigma){
+        expresion = sigma;
+        L.SetSigma(sigma);
+    }
+    
     public boolean iniEval(){
         int token;
         float v_inicial = 0.0f; 

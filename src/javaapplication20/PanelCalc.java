@@ -143,8 +143,7 @@ public class PanelCalc extends javax.swing.JPanel {
         }
         
         try {
-            analizadorLexico analizador = new analizadorLexico(cadena, this.rutaArchivoAFD);
-            Calculadora calculadora = new Calculadora(analizador);
+            Calculadora calculadora = new Calculadora(cadena, this.rutaArchivoAFD);
             if (calculadora.iniEval()) {
                 lblResultado.setText(Float.toString(calculadora.result));
                 lblPosfijo.setText(calculadora.ExprPost);
