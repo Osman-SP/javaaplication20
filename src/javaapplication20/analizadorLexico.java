@@ -5,7 +5,7 @@ import java.util.Stack;
 
 /**
  *
- * @author osman
+ * @author osman y sof
  */
 public class analizadorLexico {
      int token, edoActual, edoTransicion;
@@ -58,6 +58,8 @@ public class analizadorLexico {
      }
      
      public int yylex() {
+        Pila.push(IndiceCaracterActual);
+        
         if (AutomataFD == null) {
             lexema = "";
             return SimbEsp.ERROR();
@@ -65,6 +67,7 @@ public class analizadorLexico {
         
         // Reiniciar para el nuevo token
         IniLexema = IndiceCaracterActual;
+        Pila.push(IniLexema); //Cambio
         edoActual = 0; // Siempre empezamos en el estado 0 del AFD
         PasoPorEdoAcept = false;
         FinLexema = -1;
@@ -73,6 +76,7 @@ public class analizadorLexico {
         //Si ya llegó al final de la cadena
         if (IndiceCaracterActual >= cadenaSigma.length()) {
             lexema = "";
+            if (!Pila.isEmpty()) Pila.pop(); //Cambio
             return SimbEsp.FIN();
         }
 
@@ -80,7 +84,7 @@ public class analizadorLexico {
         while (IndiceCaracterActual < cadenaSigma.length()) {
             caracterActual = cadenaSigma.charAt(IndiceCaracterActual);
             
-            // SINTAXIS CORRECTA para acceder a la tabla de transiciones
+            // Sintaxis para acceder a la tabla de transiciones
             edoTransicion = AutomataFD.edosAFD[edoActual].transAFD[(int)caracterActual];
             
             if (edoTransicion == -1) { // Si no hay transición (callejón sin salida)
@@ -89,7 +93,7 @@ public class analizadorLexico {
             
             edoActual = edoTransicion; // Avanzamos al siguiente estado
             
-            // SINTAXIS CORRECTA para verificar si el nuevo estado es de aceptación
+            // Sintaxis para verificar si el nuevo estado es de aceptación
             if (AutomataFD.edosAFD[edoActual].token != -1) {
                 PasoPorEdoAcept = true;
                 token = AutomataFD.edosAFD[edoActual].token; // Guardamos el token encontrado
@@ -111,17 +115,20 @@ public class analizadorLexico {
         
         // Si el token es para omitir (espacios, comentarios), busca el siguiente
         if (token == SimbEsp.OMITIR()) {
+            if (!Pila.isEmpty()) Pila.pop();
             return yylex(); // Llamada recursiva para obtener el siguiente token válido
         }
+        
+        System.out.println("[yylex] token=" + token + " lexema='" + lexema + "' nextIndex=" + IndiceCaracterActual);//para probar que el descenso recursivo funciona
         
         return token; // Devuelve el token encontrado
     }
      
      public boolean undoToken(){
-         if(Pila.isEmpty()){
-             return false;
-         }
-         IndiceCaracterActual = Pila.pop();
-         return true;
+        if(Pila.isEmpty()){
+            return false;
+        }
+        IndiceCaracterActual = Pila.pop(); //Cambio
+        return true;
      }
 }
