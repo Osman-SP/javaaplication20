@@ -23,6 +23,7 @@ public class MiPanel extends javax.swing.JFrame {
     private PanelUAL panelUAL;
     private PanelCalc panelCalc;
     private CardLayout cardLayout;
+    private PanelExpReg expReg;
     public AFN elGranAFN;
     public AFD elAFDfinal;
     
@@ -61,6 +62,7 @@ public class MiPanel extends javax.swing.JFrame {
         panelOpc = new PanelOpc();
         panelUAL = new PanelUAL();
         panelCalc = new PanelCalc();
+        expReg = new PanelExpReg();
 
 
         // Los añadimos al panel contenedor, cada uno con un nombre único
@@ -75,6 +77,7 @@ public class MiPanel extends javax.swing.JFrame {
         PanelContenedor.add(panelOpc, "OPC");
         PanelContenedor.add(panelUAL, "UAL");
         PanelContenedor.add(panelCalc, "CALC");
+        PanelContenedor.add(expReg, "EXPREG");
 
         // Opcional: Mostramos el panel básico por defecto
         cardLayout.show(PanelContenedor, "Principal");
@@ -101,6 +104,7 @@ public class MiPanel extends javax.swing.JFrame {
         itemUAL = new javax.swing.JMenuItem();
         itemConv = new javax.swing.JMenuItem();
         itemProb = new javax.swing.JMenuItem();
+        jMenuItem1 = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         jMenu3 = new javax.swing.JMenu();
         jMenuItem4 = new javax.swing.JMenuItem();
@@ -206,6 +210,14 @@ public class MiPanel extends javax.swing.JFrame {
         });
         jMenu1.add(itemProb);
 
+        jMenuItem1.setText("Exp Reg a AFN");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItem1);
+
         jMenuBar1.add(jMenu1);
 
         jMenu2.setText("Analizador sintactico");
@@ -298,6 +310,10 @@ public class MiPanel extends javax.swing.JFrame {
         cardLayout.show(PanelContenedor, "CALC");
     }//GEN-LAST:event_jMenuItem4ActionPerformed
 
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        cardLayout.show(PanelContenedor, "EXPREG");
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -348,6 +364,7 @@ public class MiPanel extends javax.swing.JFrame {
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem4;
     // End of variables declaration//GEN-END:variables
 }

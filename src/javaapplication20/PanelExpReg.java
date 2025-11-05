@@ -4,15 +4,19 @@
  */
 package javaapplication20;
 
+import java.io.File;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author osman
  */
 public class PanelExpReg extends javax.swing.JPanel {
 
-    /**
-     * Creates new form PanelExpReg
-     */
+    private String archivoAFD;
+    private ExpRegular expReg;
+    
     public PanelExpReg() {
         initComponents();
     }
@@ -26,19 +30,141 @@ public class PanelExpReg extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+        jLabel1 = new javax.swing.JLabel();
+        txtRutaArchivo = new javax.swing.JTextField();
+        jPanel1 = new javax.swing.JPanel();
+        jLabel2 = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
+        jLabel3 = new javax.swing.JLabel();
+        sigma = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
+        idAFN = new javax.swing.JTextField();
+        jButton2 = new javax.swing.JButton();
+
+        setBackground(new java.awt.Color(255, 255, 255));
+        setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jLabel1.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
+        jLabel1.setText("AFN:");
+        add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 190, -1, -1));
+
+        txtRutaArchivo.setEditable(false);
+        add(txtRutaArchivo, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 190, 200, -1));
+
+        jPanel1.setBackground(new java.awt.Color(199, 21, 133));
+        jPanel1.setToolTipText("");
+
+        jLabel2.setFont(new java.awt.Font("Rockwell", 1, 36)); // NOI18N
+        jLabel2.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel2.setText("Exp Reg a AFN");
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(163, 163, 163)
+                .addComponent(jLabel2)
+                .addContainerGap(175, Short.MAX_VALUE))
         );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(39, 39, 39)
+                .addComponent(jLabel2)
+                .addContainerGap(45, Short.MAX_VALUE))
         );
+
+        add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 20, 600, -1));
+
+        jButton1.setBackground(new java.awt.Color(199, 21, 133));
+        jButton1.setFont(new java.awt.Font("SansSerif", 1, 14)); // NOI18N
+        jButton1.setForeground(new java.awt.Color(255, 255, 255));
+        jButton1.setText("Crear AFN");
+        jButton1.setToolTipText("");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+        add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(260, 380, -1, -1));
+
+        jLabel3.setText("Expresión regular:");
+        add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 270, -1, -1));
+        add(sigma, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 270, 370, -1));
+
+        jLabel4.setText("ID para AFN:");
+        add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 320, -1, -1));
+        add(idAFN, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 320, 370, -1));
+
+        jButton2.setBackground(new java.awt.Color(199, 21, 133));
+        jButton2.setFont(new java.awt.Font("SansSerif", 1, 14)); // NOI18N
+        jButton2.setForeground(new java.awt.Color(255, 255, 255));
+        jButton2.setText("Cargar...");
+        jButton2.setToolTipText("");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+        add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 190, -1, -1));
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        JFileChooser fc = new JFileChooser();
+            fc.setDialogTitle("Seleccionar archivo del AFD");
+            int seleccion = fc.showOpenDialog(this);
+            if (seleccion == JFileChooser.APPROVE_OPTION) {
+                File file = fc.getSelectedFile();
+                archivoAFD = file.getAbsolutePath();
+                txtRutaArchivo.setText(archivoAFD);
+                try {
+                    expReg = new ExpRegular(archivoAFD);
+                    JOptionPane.showMessageDialog(this, "AFD cargado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Error al cargar el AFD:\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        String id = idAFN.getText();
+        int idI = Integer.parseInt(id);
+        if (sigma == null) {
+                JOptionPane.showMessageDialog(this, "Primero carga un archivo AFD.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        String expresion = sigma.getText().trim(); //quitamos los espacios para que no marque error
+        if (expresion.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Ingresa una expresión a evaluar.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        expReg.SetExpresion(expresion);
+        if (expReg.IniConversion()) { // Le pasamos el resultado y la expresion en postfijo a los JtextField
+            // Validamos que el ID no exista ya en el mapa
+            if (AFN.afnC.containsKey(idI)) {
+                javax.swing.JOptionPane.showMessageDialog(this, "El ID " + idI + " ya existe. Por favor, elige otro.");
+                return;
+            }
+            
+            AFN.afnC.put(idI, expReg.resultado);
+            
+        } else { //Sino se puede realizar la operacion por error de sintaxis, ya que el analizador no lo reconoce
+            sigma.setText("Error de sintaxis");
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTextField idAFN;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JTextField sigma;
+    private javax.swing.JTextField txtRutaArchivo;
     // End of variables declaration//GEN-END:variables
 }

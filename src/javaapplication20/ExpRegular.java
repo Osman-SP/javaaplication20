@@ -20,7 +20,6 @@ public class ExpRegular {
     private static final int T_CORCHD = 100;  // ]
     private static final int T_GUION = 110;     // -
     
-    
 
     public ExpRegular(String sigma, String afd) {
         expresion = sigma;
@@ -158,6 +157,8 @@ public class ExpRegular {
 
             case T_SIMBOLO: 
                 char simb1 = L.lexema.charAt(0);
+                if(simb1 == 92)
+                    simb1 = L.lexema.charAt(1);
                 f.CrearBasico(simb1);
                 return true;
 
