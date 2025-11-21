@@ -131,4 +131,35 @@ public class analizadorLexico {
         IndiceCaracterActual = Pila.pop(); //Cambio
         return true;
      }
+     
+    public statusLexic getEstadoAnalizadorLexico() {
+        statusLexic e = new statusLexic();
+        e.caracterActual = caracterActual;
+        e.edoActual = edoActual;
+        e.edoTransicion = edoTransicion;
+        e.FinLexema = FinLexema;
+        e.IndiceCaracterActual = IndiceCaracterActual;
+        e.IniLexema = IniLexema;
+        e.lexema = lexema;
+        e.PasoPorEdoAcept = PasoPorEdoAcept;
+        e.token = token;
+        e.Pila = new Stack<>();
+        e.Pila.addAll(Pila); 
+        return e;
+    }
+    
+     public boolean setEstadoAnalizadorLexico(statusLexic e) {
+        caracterActual = e.caracterActual;
+        edoActual = e.edoActual;
+        edoTransicion = e.edoTransicion;
+        FinLexema = e.FinLexema;
+        IndiceCaracterActual = e.IndiceCaracterActual;
+        IniLexema = e.IniLexema;
+        lexema = e.lexema;
+        PasoPorEdoAcept = e.PasoPorEdoAcept;
+        token = e.token;
+        Pila = new Stack<>();
+        Pila.addAll(e.Pila); 
+        return true;
+    }
 }
