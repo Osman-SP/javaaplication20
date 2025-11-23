@@ -383,17 +383,21 @@ public class Panelgram_gram extends javax.swing.JPanel {
         String texto = jTextField2.getText().trim();
         if (texto.isEmpty()) return;
 
+        // 1) separar símbolos por espacio (E' F T etc.)
         String[] simbolos = texto.split("\\s+");
+
+        // 2) construir secuencia real
+        java.util.List<SimbolG> secuencia = new java.util.ArrayList<>();
         for (String s : simbolos) {
-            SimbolG simb = construirSimbolo(s);
-            java.util.List<SimbolG> lista = new java.util.ArrayList<>();
-            lista.add(simb);
+            secuencia.add(construirSimbolo(s));
+        }
 
-            java.util.Set<SimbolG> firstSet = gram.First(lista);
+        // 3) calcular FIRST de la secuencia completa
+        java.util.Set<SimbolG> firstSet = gram.First(secuencia);
 
-            for (SimbolG f : firstSet) {
-                modelFirstRes.addRow(new Object[]{ f.nombSimb });
-            }
+        // 4) mostrar solo símbolos resultantes
+        for (SimbolG f : firstSet) {
+            modelFirstRes.addRow(new Object[]{ f.nombSimb });
         }
     }//GEN-LAST:event_jButton3ActionPerformed
 
