@@ -4,6 +4,8 @@
  */
 package javaapplication20;
 
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author nsofi
@@ -11,13 +13,115 @@ package javaapplication20;
 public class Panelgram_gram extends javax.swing.JPanel {
     private javax.swing.table.DefaultTableModel tableModel;
     private String rutaArchivoAFD; // Para guardar la ruta del archivo AFD
+    private Gramatica_Gramaticas gram;
+    private javax.swing.table.DefaultTableModel modelSimbolos;
+    private javax.swing.table.DefaultTableModel modelFirstRes;
+    private javax.swing.table.DefaultTableModel modelNoTerminales;
+    private javax.swing.table.DefaultTableModel modelFollowRes;
     /**
      * Creates new form Panelgram_gram
      */
     public Panelgram_gram() {
         initComponents();
+        
+        tableModel = (javax.swing.table.DefaultTableModel) tablaSimbolos.getModel();
+        modelSimbolos = (javax.swing.table.DefaultTableModel) tablaSimbolos.getModel();
+        modelFirstRes = (javax.swing.table.DefaultTableModel) jTable2.getModel();
+        modelNoTerminales = (javax.swing.table.DefaultTableModel) jTable3.getModel();
+        modelFollowRes = (javax.swing.table.DefaultTableModel) jTable4.getModel();
+
+        
+        tablaSimbolos.setDefaultEditor(Object.class, null);
+        jTable2.setDefaultEditor(Object.class, null);
+        jTable3.setDefaultEditor(Object.class, null);
+        jTable4.setDefaultEditor(Object.class, null);
+
+        configurarDobleClicFirst();
+        configurarDobleClicFollow();
+        
+    }
+    
+    
+
+    private void llenarTablasDeSimbolos() {
+        // limpiar
+        modelSimbolos.setRowCount(0);
+        modelNoTerminales.setRowCount(0);
+
+        // ordenar para bonito (opcional)
+        java.util.List<String> listaVN = new java.util.ArrayList<>(gram.vn);
+        java.util.List<String> listaVT = new java.util.ArrayList<>(gram.vt);
+        java.util.Collections.sort(listaVN);
+        java.util.Collections.sort(listaVT);
+
+        // Vn -> tablaSimbolos y jTable3
+        for (String s : listaVN) {
+            modelSimbolos.addRow(new Object[]{s, "No terminal"});
+            modelNoTerminales.addRow(new Object[]{s});
+        }
+
+        // Vt -> solo tablaSimbolos
+        for (String s : listaVT) {
+            if (!gram.vn.contains(s)) { // evitar duplicados raros
+                modelSimbolos.addRow(new Object[]{s, "Terminal"});
+            }
+        }
     }
 
+    private void configurarDobleClicFirst() {
+        tablaSimbolos.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int row = tablaSimbolos.rowAtPoint(e.getPoint());
+                    if (row < 0) return;
+
+                    String simbolo = modelSimbolos.getValueAt(row, 0).toString();
+                    agregarATextField(jTextField2, simbolo);
+                }
+            }
+        });
+    }
+    
+    private void configurarDobleClicFollow() {
+        jTable3.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int row = jTable3.rowAtPoint(e.getPoint());
+                    if (row < 0) return;
+
+                    String simbolo = modelNoTerminales.getValueAt(row, 0).toString();
+                    agregarATextField(jTextField3, simbolo);
+                }
+            }
+        });
+    }
+    
+    private void agregarATextField(javax.swing.JTextField tf, String simbolo) {
+        String actual = tf.getText().trim();
+        if (actual.isEmpty()) {
+            tf.setText(simbolo);
+            return;
+        }
+
+        // evitar duplicados
+        String[] parts = actual.split("\\s+");
+        for (String p : parts) {
+            if (p.equals(simbolo)) return;
+        }
+
+        tf.setText(actual + " " + simbolo);
+    }
+    
+    private SimbolG construirSimbolo(String s) {
+        if (s.equals("epsilon") || s.equals("$")) {
+            return new SimbolG(s, -1, true);
+        }
+        boolean esTerminal = !gram.vn.contains(s);
+        return new SimbolG(s, -1, esTerminal);
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -28,7 +132,7 @@ public class Panelgram_gram extends javax.swing.JPanel {
     private void initComponents() {
 
         jLabel1 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
+        txtSigma = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
@@ -43,7 +147,7 @@ public class Panelgram_gram extends javax.swing.JPanel {
         jButton4 = new javax.swing.JButton();
         jButton5 = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        tablaSimbolos = new javax.swing.JTable();
         jScrollPane2 = new javax.swing.JScrollPane();
         jTable2 = new javax.swing.JTable();
         jScrollPane3 = new javax.swing.JScrollPane();
@@ -59,17 +163,22 @@ public class Panelgram_gram extends javax.swing.JPanel {
         jLabel1.setText("Cadena a analizar sintácticamente: ");
         add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 180, -1, -1));
 
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
+        txtSigma.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField1ActionPerformed(evt);
+                txtSigmaActionPerformed(evt);
             }
         });
-        add(jTextField1, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 180, 730, 70));
+        add(txtSigma, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 180, 730, 70));
 
         jLabel2.setText("<html><p align=\"center\">Da doble click en el símbolo que quieras<br> agregar a la lista para calcular su first</p> </html>");
-        add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 310, 220, 30));
+        add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 280, 270, 90));
 
         jButton1.setText("Analizar");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
         add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(990, 200, 110, 30));
 
         jLabel3.setText("Lista simbolos para First");
@@ -85,6 +194,11 @@ public class Panelgram_gram extends javax.swing.JPanel {
         add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(330, 380, -1, -1));
 
         jButton3.setText("First");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
         add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(470, 380, -1, -1));
 
         jLabel4.setText("Tabla Vn U Vt");
@@ -107,12 +221,22 @@ public class Panelgram_gram extends javax.swing.JPanel {
         add(jTextField3, new org.netbeans.lib.awtextra.AbsoluteConstraints(900, 340, 210, -1));
 
         jButton4.setText("Borrar");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
         add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(900, 380, -1, -1));
 
         jButton5.setText("Follow");
+        jButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton5ActionPerformed(evt);
+            }
+        });
         add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(1040, 380, -1, -1));
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        tablaSimbolos.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null},
                 {null, null},
@@ -123,9 +247,9 @@ public class Panelgram_gram extends javax.swing.JPanel {
                 "Símbolo", "Terminal/No Terminal"
             }
         ));
-        jTable1.setName(""); // NOI18N
-        jTable1.setPreferredSize(new java.awt.Dimension(150, 70));
-        jScrollPane1.setViewportView(jTable1);
+        tablaSimbolos.setName(""); // NOI18N
+        tablaSimbolos.setPreferredSize(null);
+        jScrollPane1.setViewportView(tablaSimbolos);
 
         add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 430, 230, 240));
 
@@ -140,6 +264,7 @@ public class Panelgram_gram extends javax.swing.JPanel {
                 "Símbolo"
             }
         ));
+        jTable2.setPreferredSize(null);
         jScrollPane2.setViewportView(jTable2);
 
         add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 430, 230, 240));
@@ -155,6 +280,7 @@ public class Panelgram_gram extends javax.swing.JPanel {
                 "Símbolo"
             }
         ));
+        jTable3.setPreferredSize(null);
         jScrollPane3.setViewportView(jTable3);
 
         add(jScrollPane3, new org.netbeans.lib.awtextra.AbsoluteConstraints(602, 427, 220, 240));
@@ -170,6 +296,7 @@ public class Panelgram_gram extends javax.swing.JPanel {
                 "Símbolo"
             }
         ));
+        jTable4.setPreferredSize(null);
         jScrollPane4.setViewportView(jTable4);
 
         add(jScrollPane4, new org.netbeans.lib.awtextra.AbsoluteConstraints(902, 427, 210, 240));
@@ -187,12 +314,13 @@ public class Panelgram_gram extends javax.swing.JPanel {
         add(btnCargar, new org.netbeans.lib.awtextra.AbsoluteConstraints(990, 130, 110, -1));
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
+    private void txtSigmaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSigmaActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField1ActionPerformed
+    }//GEN-LAST:event_txtSigmaActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // TODO add your handling code here:
+        modelFirstRes.setRowCount(0);
+        jTextField2.setText("");
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jTextField3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField3ActionPerformed
@@ -211,6 +339,91 @@ public class Panelgram_gram extends javax.swing.JPanel {
             txtRutaArchivo.setText(this.rutaArchivoAFD); // Mostramos la ruta en el TextField
         }
     }//GEN-LAST:event_btnCargarActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        String cadena = txtSigma.getText();
+
+        if (cadena.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Por favor, ingresa una cadena para analizar.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (this.rutaArchivoAFD == null || this.rutaArchivoAFD.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Por favor, carga un archivo de definición de AFD.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            gram = new Gramatica_Gramaticas(cadena, this.rutaArchivoAFD, 100);
+            boolean ok = gram.iniEval();
+
+            if (ok) {
+                llenarTablasDeSimbolos();
+                JOptionPane.showMessageDialog(this, "Gramática válida ✅");
+            } else {
+                JOptionPane.showMessageDialog(this, "Gramática inválida ❌",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Ocurrió un error durante el análisis: " + e.getMessage(),
+                    "Error de Análisis", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        if (gram == null) {
+            JOptionPane.showMessageDialog(this, "Primero analiza una gramática válida.");
+            return;
+        }
+
+        modelFirstRes.setRowCount(0);
+
+        String texto = jTextField2.getText().trim();
+        if (texto.isEmpty()) return;
+
+        String[] simbolos = texto.split("\\s+");
+        for (String s : simbolos) {
+            SimbolG simb = construirSimbolo(s);
+            java.util.List<SimbolG> lista = new java.util.ArrayList<>();
+            lista.add(simb);
+
+            java.util.Set<SimbolG> firstSet = gram.First(lista);
+
+            for (SimbolG f : firstSet) {
+                modelFirstRes.addRow(new Object[]{ f.nombSimb });
+            }
+        }
+    }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+        if (gram == null) {
+            JOptionPane.showMessageDialog(this, "Primero analiza una gramática válida.");
+            return;
+        }
+
+        modelFollowRes.setRowCount(0);
+
+        String texto = jTextField3.getText().trim();
+        if (texto.isEmpty()) return;
+
+        String[] simbolos = texto.split("\\s+");
+        for (String s : simbolos) {
+            SimbolG simb = construirSimbolo(s);
+
+            java.util.Set<SimbolG> followSet = gram.Follow(simb);
+
+            for (SimbolG f : followSet) {
+                modelFollowRes.addRow(new Object[]{ f.nombSimb });
+            }
+        }
+    }//GEN-LAST:event_jButton5ActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        modelFollowRes.setRowCount(0);
+        jTextField3.setText("");
+    }//GEN-LAST:event_jButton4ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -232,13 +445,13 @@ public class Panelgram_gram extends javax.swing.JPanel {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JTable jTable1;
     private javax.swing.JTable jTable2;
     private javax.swing.JTable jTable3;
     private javax.swing.JTable jTable4;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField3;
+    private javax.swing.JTable tablaSimbolos;
     private javax.swing.JTextField txtRutaArchivo;
+    private javax.swing.JTextField txtSigma;
     // End of variables declaration//GEN-END:variables
 }

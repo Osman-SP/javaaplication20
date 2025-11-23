@@ -17,38 +17,43 @@ public class Gramatica_Gramaticas {
     public Gramatica_Gramaticas(String sigma, String afd, int maxReglas) {
         gramatica = sigma;
         Lexic = new analizadorLexico(gramatica, afd);
-        vn.clear();
-        vt.clear();
-        // Inicializar arreglo de reglas
+
         reglas = new LadoIzq[maxReglas];
         for (int i = 0; i < maxReglas; i++) {
             reglas[i] = new LadoIzq();
         }
     }
-    
-    public boolean iniEval() {
-    // Reiniciar analizador léxico
-    Lexic.SetSigma(gramatica);
 
-    // 1. Llamar al símbolo inicial G()
-    if (G()) {
-        // 2. Debe venir fin de cadena
-        int token = Lexic.yylex();
-        if (token == Tokens.FIN) {
-            // Gramática válida
-            return true;
-        } else {
-            System.out.println("Error: Sobran símbolos después de analizar la gramática.");
-        }
-    } else {
-        System.out.println("Error: La gramática no cumple con la estructura G → Reglas.");
+    private String norm(String lex) {
+        return lex.trim(); // sin toLowerCase para respetar mayúsculas
     }
 
-    return false;
-}
+    public boolean iniEval() {
+        // ✅ Reset total por si analizas varias veces
+        numReglas = 0;
+        simboloInicial = null;
+        vn.clear();
+        vt.clear();
 
-    
-    
+        // Reiniciar analizador léxico
+        Lexic.SetSigma(gramatica);
+
+        // 1. Llamar al símbolo inicial G()
+        if (G()) {
+            // 2. Debe venir fin de cadena
+            int token = Lexic.yylex();
+            if (token == Tokens.FIN) {
+                return true;
+            } else {
+                System.out.println("Error: Sobran símbolos después de analizar la gramática.");
+            }
+        } else {
+            System.out.println("Error: La gramática no cumple con la estructura G → Reglas.");
+        }
+
+        return false;
+    }
+
     // G -> Reglas
     public boolean G() {
         return Reglas();
@@ -66,7 +71,6 @@ public class Gramatica_Gramaticas {
     }
 
     public boolean ReglasP() {
-        // Guardar estado léxico para poder retroceder (ε)
         statusLexic EdoLexico = Lexic.getEstadoAnalizadorLexico();
 
         if (Regla()) {
@@ -76,7 +80,7 @@ public class Gramatica_Gramaticas {
             }
             return false;
         }
-        // No vino una regla -> retroceder (equivale a ε)
+
         Lexic.setEstadoAnalizadorLexico(EdoLexico);
         return true;
     }
@@ -86,7 +90,7 @@ public class Gramatica_Gramaticas {
         if (LadoIzq(refLexema)) {
             int token = Lexic.yylex();
             if (token == Tokens.FLECHA) {
-                return LadoDerecho(refLexema.valor);
+                return LadosDerechos(refLexema.valor); // ✅ acepta OR '|'
             }
         }
         return false;
@@ -96,10 +100,15 @@ public class Gramatica_Gramaticas {
     public boolean LadoIzq(EnvoltorioString lexemaLadoIzq) {
         int token = Lexic.yylex();
         if (token == Tokens.SIMBOLO) {
-            String nombre = Lexic.lexema;
+
+            String nombre = norm(Lexic.lexema);
+
             SimbolG s = new SimbolG(nombre, -1, false);
             s.esTerminal = false;
+
             vn.add(nombre);
+            vt.remove(nombre);
+
             lexemaLadoIzq.valor = nombre;
             return true;
         }
@@ -129,31 +138,46 @@ public class Gramatica_Gramaticas {
         List<SimbolG> l = new ArrayList<>();
 
         if (SecSimbolos(l)) {
+
+            // ✅ prohibimos epsilon implícito (regla vacía)
+            if (l.isEmpty()) return false;
+
             SimbolG izq = new SimbolG(lexemaLadoIzq, -1, false);
             reglas[numReglas].simIzq = izq;
             reglas[numReglas].ladoDerecho = l;
             numReglas++;
-            // Añadir símbolos del lado derecho al conjunto de terminales/no terminales
+
+            // ✅ Clasificación REAL usando vn, no esTerminal provisional
             for (SimbolG s : l) {
-                if (s.esTerminal) vt.add(s.nombSimb);
-                else vn.add(s.nombSimb);
+                if ("epsilon".equals(s.nombSimb)) continue; // epsilon no va a vt/vn
+
+                if (vn.contains(s.nombSimb)) {
+                    s.esTerminal = false;
+                    vn.add(s.nombSimb);
+                    vt.remove(s.nombSimb);
+                } else {
+                    s.esTerminal = true;
+                    vt.add(s.nombSimb);
+                }
             }
-            // Si es la primera regla, marcar símbolo inicial
+
             if (simboloInicial == null) simboloInicial = izq;
             return true;
         }
         return false;
     }
 
-    // Secuencia de símbolos: recursiva, agrega en orden (primero leído -> primero en la lista)
+    // Secuencia de símbolos
     public boolean SecSimbolos(List<SimbolG> l) {
         int token = Lexic.yylex();
         if (token == Tokens.SIMBOLO) {
-            SimbolG s = new SimbolG(Lexic.lexema, -1, !vn.contains(Lexic.lexema)); // si no está en vn -> terminal provisional
-            // Corregir: si el símbolo ya está declarado como no terminal lo marcamos
-            if (vn.contains(Lexic.lexema)) s.esTerminal = false;
+
+            String lex = norm(Lexic.lexema);
+            SimbolG s = new SimbolG(lex, -1, !vn.contains(lex));
+            if (vn.contains(lex)) s.esTerminal = false;
+
             if (SecSimbolosP(l)) {
-                l.add(0, s); // insertar al inicio para mantener orden leído -> izquierda
+                l.add(0, s);
                 return true;
             }
             return false;
@@ -162,12 +186,15 @@ public class Gramatica_Gramaticas {
         return true;
     }
 
-    // SecSimbolosP -> permite más símbolos en la secuencia
+    // SecSimbolosP
     public boolean SecSimbolosP(List<SimbolG> l) {
         int token = Lexic.yylex();
         if (token == Tokens.SIMBOLO) {
-            SimbolG s = new SimbolG(Lexic.lexema, -1, !vn.contains(Lexic.lexema));
-            if (vn.contains(Lexic.lexema)) s.esTerminal = false;
+
+            String lex = norm(Lexic.lexema);
+            SimbolG s = new SimbolG(lex, -1, !vn.contains(lex));
+            if (vn.contains(lex)) s.esTerminal = false;
+
             if (SecSimbolosP(l)) {
                 l.add(0, s);
                 return true;
@@ -186,86 +213,118 @@ public class Gramatica_Gramaticas {
 
         SimbolG primero = l.get(0);
 
-        // Si es terminal o epsilon
-        if (primero.esTerminal || "epsilon".equals(primero.nombSimb)) {
+        if ("epsilon".equals(primero.nombSimb)) {
+            R.add(SimbolG.EPSILON());
+            return R;
+        }
+
+        // Terminal real = no está en vn
+        if (!vn.contains(primero.nombSimb)) {
             R.add(primero);
             return R;
         }
 
-        // primero es no terminal: buscar reglas con ese lado izquierdo
+        // No terminal real: expandir reglas
         for (int i = 0; i < numReglas; i++) {
-            if (reglas[i].simIzq != null && reglas[i].simIzq.nombSimb.equals(primero.nombSimb)) {
+            if (reglas[i].simIzq != null &&
+                reglas[i].simIzq.nombSimb.equals(primero.nombSimb)) {
+
                 R.addAll(First(reglas[i].ladoDerecho));
             }
         }
 
-        // si R contiene epsilon, propagar hacia la derecha
+        // Propagar epsilon en secuencia
         boolean contieneEps = false;
-        SimbolG eps = SimbolG.EPSILON();
         for (SimbolG s : R) {
             if ("epsilon".equals(s.nombSimb)) {
                 contieneEps = true;
                 break;
             }
         }
+
         if (contieneEps) {
-            R.remove(eps);
+            R.remove(SimbolG.EPSILON());
             if (l.size() > 1) {
                 R.addAll(First(l.subList(1, l.size())));
             } else {
-                R.add(eps);
+                R.add(SimbolG.EPSILON());
             }
         }
+
         return R;
     }
 
     public Set<SimbolG> Follow(SimbolG s) {
-        Set<SimbolG> R = new HashSet<>();
-        if (s.esTerminal) return R;
+        return Follow(s, new HashSet<>());
+    }
 
-        if (s.equals(simboloInicial)) {
+    private Set<SimbolG> Follow(SimbolG s, Set<String> visited) {
+        Set<SimbolG> R = new HashSet<>();
+
+        if (s == null) return R;
+
+        // No-terminal real
+        if (!vn.contains(s.nombSimb)) return R;
+
+        // Evitar ciclos
+        if (visited.contains(s.nombSimb)) return R;
+        visited.add(s.nombSimb);
+
+        if (simboloInicial != null && s.nombSimb.equals(simboloInicial.nombSimb)) {
             R.add(SimbolG.DOLAR());
         }
 
         for (int i = 0; i < numReglas; i++) {
             List<SimbolG> lado = reglas[i].ladoDerecho;
             if (lado == null) continue;
+
             for (int j = 0; j < lado.size(); j++) {
-                if (lado.get(j).nombSimb.equals(s.nombSimb)) {
-                    if (j == lado.size() - 1) {
-                        if (!s.equals(reglas[i].simIzq)) {
-                            R.addAll(Follow(reglas[i].simIzq));
+
+                if (!lado.get(j).nombSimb.equals(s.nombSimb)) continue;
+
+                if (j == lado.size() - 1) {
+                    if (reglas[i].simIzq != null &&
+                        !reglas[i].simIzq.nombSimb.equals(s.nombSimb)) {
+
+                        R.addAll(Follow(reglas[i].simIzq, visited));
+                    }
+
+                } else {
+                    List<SimbolG> sublista = lado.subList(j + 1, lado.size());
+                    Set<SimbolG> aux = First(sublista);
+
+                    boolean tieneEps = false;
+                    for (SimbolG sg : aux) {
+                        if ("epsilon".equals(sg.nombSimb)) {
+                            tieneEps = true;
+                            break;
+                        }
+                    }
+
+                    if (tieneEps) {
+                        aux.remove(SimbolG.EPSILON());
+                        R.addAll(aux);
+                        if (reglas[i].simIzq != null) {
+                            R.addAll(Follow(reglas[i].simIzq, visited));
                         }
                     } else {
-                        List<SimbolG> sublista = lado.subList(j + 1, lado.size());
-                        Set<SimbolG> aux = First(sublista);
-                        SimbolG epsSym = SimbolG.EPSILON();
-                        boolean tieneEps = false;
-                        for (SimbolG sg : aux) {
-                            if ("epsilon".equals(sg.nombSimb)) { tieneEps = true; break; }
-                        }
-                        if (tieneEps) {
-                            aux.remove(epsSym);
-                            R.addAll(aux);
-                            R.addAll(Follow(reglas[i].simIzq));
-                        } else {
-                            R.addAll(aux);
-                        }
+                        R.addAll(aux);
                     }
                 }
             }
         }
+
         return R;
     }
 }
 
+// ----------------- clases auxiliares -----------------
 
 class EnvoltorioString {
     public String valor;
     public EnvoltorioString(String s) {
         this.valor = s;
     }
-
     @Override
     public String toString() {
         return valor;
@@ -274,12 +333,9 @@ class EnvoltorioString {
 
 final class Tokens {
     private Tokens() {}
-
     public static final int SIMBOLO = 10;
     public static final int FLECHA  = 20;
     public static final int OR      = 30;
     public static final int PUNTO_Y_COMA = 40;
     public static final int FIN = 0;
-
 }
-

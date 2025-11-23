@@ -114,19 +114,11 @@ public class MiPanel extends javax.swing.JFrame {
         jMenuItem2 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setPreferredSize(null);
 
-        PanelContenedor.setPreferredSize(new java.awt.Dimension(600, 500));
-
-        javax.swing.GroupLayout PanelContenedorLayout = new javax.swing.GroupLayout(PanelContenedor);
-        PanelContenedor.setLayout(PanelContenedorLayout);
-        PanelContenedorLayout.setHorizontalGroup(
-            PanelContenedorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 600, Short.MAX_VALUE)
-        );
-        PanelContenedorLayout.setVerticalGroup(
-            PanelContenedorLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 500, Short.MAX_VALUE)
-        );
+        PanelContenedor.setPreferredSize(null);
+        PanelContenedor.setRequestFocusEnabled(false);
+        PanelContenedor.setLayout(new java.awt.BorderLayout());
 
         jMenuBar1.setFont(new java.awt.Font("Bahnschrift", 1, 14)); // NOI18N
 
