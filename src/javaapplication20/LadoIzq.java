@@ -7,6 +7,7 @@ import java.util.Objects;
 public class LadoIzq {
     public SimbolG simIzq;
     public List<SimbolG> ladoDerecho;
+    public int id;
 
     public LadoIzq() {
         this.simIzq = null;

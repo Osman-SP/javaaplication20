@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
- */
 package javaapplication20;
 
 import javax.swing.JOptionPane;
@@ -371,7 +367,7 @@ public class Panelgram_gram extends javax.swing.JPanel {
                     "Error de Análisis", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_jButton1ActionPerformed
-
+   
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         if (gram == null) {
             JOptionPane.showMessageDialog(this, "Primero analiza una gramática válida.");
