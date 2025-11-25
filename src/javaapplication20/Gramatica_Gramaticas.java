@@ -13,6 +13,17 @@ public class Gramatica_Gramaticas {
     public Set<String> vt = new HashSet<>();
     public SimbolG simboloInicial;
     analizadorLexico Lexic;
+    
+    // Arreglos finales
+    public List<String> arrVN;   // [E, E', T, T', F]
+    public List<String> arrVT;   // [mas, menos, prod, div, parI, parD, num, $]
+
+    // Mapas para localizar rápido índices
+    public java.util.Map<String, Integer> idxVN; // E -> 0
+    public java.util.Map<String, Integer> idxVT; // num -> 6
+
+    // Si quieres token numérico tipo 10,20,30...
+    public java.util.Map<String, Integer> tokenVT; 
 
     public Gramatica_Gramaticas(String sigma, String afd, int maxReglas) {
         gramatica = sigma;
@@ -23,6 +34,61 @@ public class Gramatica_Gramaticas {
             reglas[i] = new LadoIzq();
         }
     }
+    
+    public void construirArreglosSimbolos() {
+
+        // LinkedHashSet mantiene orden de inserción
+        java.util.LinkedHashSet<String> vnOrden = new java.util.LinkedHashSet<>();
+        java.util.LinkedHashSet<String> vtOrden = new java.util.LinkedHashSet<>();
+
+        // 1) Recorremos reglas en orden y vamos registrando aparición
+        for (int i = 0; i < numReglas; i++) {
+            if (reglas[i].simIzq == null) continue;
+
+            // LHS siempre es VN
+            vnOrden.add(reglas[i].simIzq.nombSimb);
+
+            // RHS puede tener VT o VN
+            List<SimbolG> lado = reglas[i].ladoDerecho;
+            if (lado == null) continue;
+
+            for (SimbolG s : lado) {
+                String x = s.nombSimb;
+                if ("epsilon".equals(x)) continue; // epsilon no va en VT
+
+                // si ya está en VN, es no terminal
+                if (vnOrden.contains(x) || vn.contains(x)) {
+                    vnOrden.add(x);
+                } else {
+                    vtOrden.add(x);
+                }
+            }
+        }
+
+        // 2) Convertimos a listas (arreglos)
+        arrVN = new ArrayList<>(vnOrden);
+
+        arrVT = new ArrayList<>(vtOrden);
+        if (!arrVT.contains("$")) arrVT.add("$"); // agregar $ al final
+
+        // 3) Construimos mapas índice
+        idxVN = new java.util.LinkedHashMap<>();
+        for (int i = 0; i < arrVN.size(); i++) {
+            idxVN.put(arrVN.get(i), i);
+        }
+
+        idxVT = new java.util.LinkedHashMap<>();
+        for (int i = 0; i < arrVT.size(); i++) {
+            idxVT.put(arrVT.get(i), i);
+        }
+
+        // 4) Token numérico estilo profe (10, 20, 30...)
+        tokenVT = new java.util.LinkedHashMap<>();
+        for (int i = 0; i < arrVT.size(); i++) {
+            tokenVT.put(arrVT.get(i), (i + 1) * 10);
+        }
+    }
+
 
     private String norm(String lex) {
         return lex.trim(); // sin toLowerCase para respetar mayúsculas
@@ -145,6 +211,7 @@ public class Gramatica_Gramaticas {
             SimbolG izq = new SimbolG(lexemaLadoIzq, -1, false);
             reglas[numReglas].simIzq = izq;
             reglas[numReglas].ladoDerecho = l;
+            reglas[numReglas].id = numReglas + 1;
             numReglas++;
 
             // ✅ Clasificación REAL usando vn, no esTerminal provisional
@@ -316,6 +383,54 @@ public class Gramatica_Gramaticas {
 
         return R;
     }
+    
+    public int[][] TablaLL1() {
+
+        int filas = arrVN.size() + 1; // +1 para fila $
+        int cols  = arrVT.size();     // VT ya incluye $
+
+        int[][] tabla = new int[filas][cols];
+
+        for (int i = 0; i < filas; i++)
+            java.util.Arrays.fill(tabla[i], -1); // vacío
+
+        // 1) Llenar VN x VT con números de regla
+        for (int i = 0; i < numReglas; i++) {
+            String A = reglas[i].simIzq.nombSimb;
+            List<SimbolG> alpha = reglas[i].ladoDerecho;
+            int idRegla = reglas[i].id;
+
+            Set<SimbolG> firstAlpha = First(alpha);
+            boolean tieneEps = false;
+
+            for (SimbolG t : firstAlpha) {
+                if ("epsilon".equals(t.nombSimb)) {
+                    tieneEps = true;
+                } else {
+                    int f = idxVN.get(A);
+                    int c = idxVT.get(t.nombSimb);
+                    tabla[f][c] = idRegla;
+                }
+            }
+
+            if (tieneEps) {
+                Set<SimbolG> followA = Follow(reglas[i].simIzq);
+                for (SimbolG b : followA) {
+                    int f = idxVN.get(A);
+                    int c = idxVT.get(b.nombSimb);
+                    tabla[f][c] = idRegla;
+                }
+            }
+        }
+
+        // 2) Fila $ (última): accept en columna $
+        int filaPesos = arrVN.size();
+        int colPesos = idxVT.get("$");
+        tabla[filaPesos][colPesos] = 999; // por ejemplo 999 = accept
+
+        return tabla;
+    }
+
 }
 
 // ----------------- clases auxiliares -----------------
