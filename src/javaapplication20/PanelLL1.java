@@ -132,7 +132,7 @@ public class PanelLL1 extends javax.swing.JPanel {
         txtSigma = new javax.swing.JTextField();
         jButton4 = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jTable2 = new javax.swing.JTable();
+        tablaAnalisis = new javax.swing.JTable();
         jScrollPane3 = new javax.swing.JScrollPane();
         tablaNoTerminal = new javax.swing.JTable();
         jScrollPane4 = new javax.swing.JScrollPane();
@@ -162,6 +162,8 @@ public class PanelLL1 extends javax.swing.JPanel {
         setLayout(new java.awt.BorderLayout());
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel1.setAutoscrolls(true);
+        jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jPanel2.setBackground(new java.awt.Color(255, 153, 0));
 
@@ -186,13 +188,17 @@ public class PanelLL1 extends javax.swing.JPanel {
                 .addContainerGap(18, Short.MAX_VALUE))
         );
 
+        jPanel1.add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 15, 1208, -1));
+
         jLabel2.setText("Gramática:");
+        jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(14, 101, -1, -1));
 
         txtGram.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtGramActionPerformed(evt);
             }
         });
+        jPanel1.add(txtGram, new org.netbeans.lib.awtextra.AbsoluteConstraints(83, 101, 401, 169));
 
         jButton1.setBackground(new java.awt.Color(255, 153, 0));
         jButton1.setFont(new java.awt.Font("Rockwell", 1, 12)); // NOI18N
@@ -203,6 +209,7 @@ public class PanelLL1 extends javax.swing.JPanel {
                 jButton1ActionPerformed(evt);
             }
         });
+        jPanel1.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(83, 276, 109, -1));
 
         jButton2.setBackground(new java.awt.Color(255, 153, 0));
         jButton2.setFont(new java.awt.Font("Rockwell", 1, 12)); // NOI18N
@@ -213,6 +220,14 @@ public class PanelLL1 extends javax.swing.JPanel {
                 jButton2ActionPerformed(evt);
             }
         });
+        jPanel1.add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(279, 276, 205, -1));
+
+        txtRutaArchivo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtRutaArchivoActionPerformed(evt);
+            }
+        });
+        jPanel1.add(txtRutaArchivo, new org.netbeans.lib.awtextra.AbsoluteConstraints(506, 101, 245, -1));
 
         jButton3.setBackground(new java.awt.Color(255, 153, 0));
         jButton3.setFont(new java.awt.Font("Rockwell", 1, 12)); // NOI18N
@@ -223,8 +238,11 @@ public class PanelLL1 extends javax.swing.JPanel {
                 jButton3ActionPerformed(evt);
             }
         });
+        jPanel1.add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(789, 102, -1, -1));
 
         jLabel3.setText("Sigma:");
+        jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(506, 207, -1, -1));
+        jPanel1.add(txtSigma, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 207, 396, 63));
 
         jButton4.setBackground(new java.awt.Color(255, 153, 0));
         jButton4.setFont(new java.awt.Font("Rockwell", 1, 12)); // NOI18N
@@ -235,8 +253,9 @@ public class PanelLL1 extends javax.swing.JPanel {
                 jButton4ActionPerformed(evt);
             }
         });
+        jPanel1.add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(738, 276, -1, -1));
 
-        jTable2.setModel(new javax.swing.table.DefaultTableModel(
+        tablaAnalisis.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null},
                 {null, null, null},
@@ -247,7 +266,9 @@ public class PanelLL1 extends javax.swing.JPanel {
                 "Pila", "Cadena", "Acción"
             }
         ));
-        jScrollPane2.setViewportView(jTable2);
+        jScrollPane2.setViewportView(tablaAnalisis);
+
+        jPanel1.add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(526, 304, 659, 330));
 
         tablaNoTerminal.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -262,6 +283,8 @@ public class PanelLL1 extends javax.swing.JPanel {
         ));
         jScrollPane3.setViewportView(tablaNoTerminal);
 
+        jPanel1.add(jScrollPane3, new org.netbeans.lib.awtextra.AbsoluteConstraints(83, 304, 109, 130));
+
         tablaTerminal.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null},
@@ -275,7 +298,10 @@ public class PanelLL1 extends javax.swing.JPanel {
         ));
         jScrollPane4.setViewportView(tablaTerminal);
 
+        jPanel1.add(jScrollPane4, new org.netbeans.lib.awtextra.AbsoluteConstraints(279, 304, 205, 130));
+
         jLabel4.setText("Tabla LL(1)");
+        jPanel1.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 450, -1, -1));
 
         tablaLL1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -290,6 +316,8 @@ public class PanelLL1 extends javax.swing.JPanel {
         ));
         jScrollPane5.setViewportView(tablaLL1);
 
+        jPanel1.add(jScrollPane5, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 480, 401, 150));
+
         tblLexico.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null},
@@ -303,6 +331,8 @@ public class PanelLL1 extends javax.swing.JPanel {
         ));
         jScrollPane6.setViewportView(tblLexico);
 
+        jPanel1.add(jScrollPane6, new org.netbeans.lib.awtextra.AbsoluteConstraints(999, 101, 186, 169));
+
         jButton5.setBackground(new java.awt.Color(255, 153, 0));
         jButton5.setFont(new java.awt.Font("Rockwell", 1, 12)); // NOI18N
         jButton5.setForeground(new java.awt.Color(255, 255, 255));
@@ -312,6 +342,8 @@ public class PanelLL1 extends javax.swing.JPanel {
                 jButton5ActionPerformed(evt);
             }
         });
+        jPanel1.add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(1076, 276, -1, -1));
+        jPanel1.add(txtRutaArchivo2, new org.netbeans.lib.awtextra.AbsoluteConstraints(506, 152, 245, -1));
 
         jButton6.setBackground(new java.awt.Color(255, 153, 0));
         jButton6.setFont(new java.awt.Font("Rockwell", 1, 12)); // NOI18N
@@ -322,97 +354,7 @@ public class PanelLL1 extends javax.swing.JPanel {
                 jButton6ActionPerformed(evt);
             }
         });
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(14, 14, 14)
-                .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(txtGram)
-                    .addComponent(jLabel4)
-                    .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(jButton1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 109, Short.MAX_VALUE)
-                            .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                        .addGap(87, 87, 87)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, 205, Short.MAX_VALUE)
-                            .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 22, Short.MAX_VALUE)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGap(232, 232, 232)
-                                .addComponent(jButton4))
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(txtRutaArchivo, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jButton3))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                                .addComponent(jLabel3)
-                                .addGap(18, 18, 18)
-                                .addComponent(txtSigma, javax.swing.GroupLayout.PREFERRED_SIZE, 396, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(txtRutaArchivo2, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jButton6)))
-                        .addGap(43, 43, 43)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton5)))
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 659, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(23, 23, 23))
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(15, 15, 15)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(15, 15, 15)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel2)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(txtRutaArchivo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton3))
-                        .addGap(28, 28, 28)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(txtRutaArchivo2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton6))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 32, Short.MAX_VALUE)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtSigma, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel3)))
-                    .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                    .addComponent(txtGram))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2)
-                    .addComponent(jButton4)
-                    .addComponent(jButton5))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, 18)
-                        .addComponent(jLabel4)
-                        .addGap(18, 18, 18)
-                        .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPane2))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
+        jPanel1.add(jButton6, new org.netbeans.lib.awtextra.AbsoluteConstraints(757, 153, -1, -1));
 
         add(jPanel1, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
@@ -467,7 +409,45 @@ public class PanelLL1 extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        // TODO add your handling code here:
+        String archivo = txtRutaArchivo.getText();
+        if (gram == null) {
+            JOptionPane.showMessageDialog(this,
+                    "Primero crea la gramática y la tabla LL(1).",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String sigma = txtSigma.getText().trim();
+        if (sigma.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Ingresa la cadena sigma a analizar.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (this.rutaArchivoAFD == null || this.rutaArchivoAFD.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Por favor, carga un archivo de definición de AFD.", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            java.util.List<String[]> pasos =
+                    gram.analizarCadenaLL1(sigma, archivo);
+
+            DefaultTableModel model =
+                    (DefaultTableModel) tablaAnalisis.getModel();
+            model.setRowCount(0);
+
+            for (String[] fila : pasos) {
+                model.addRow(fila); // { pila, cadena, acción }
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                    "Error durante el análisis: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
@@ -587,6 +567,10 @@ public class PanelLL1 extends javax.swing.JPanel {
         );
     }//GEN-LAST:event_jButton2ActionPerformed
 
+    private void txtRutaArchivoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtRutaArchivoActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtRutaArchivoActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
@@ -608,7 +592,7 @@ public class PanelLL1 extends javax.swing.JPanel {
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JTable jTable1;
-    private javax.swing.JTable jTable2;
+    private javax.swing.JTable tablaAnalisis;
     private javax.swing.JTable tablaLL1;
     private javax.swing.JTable tablaNoTerminal;
     private javax.swing.JTable tablaTerminal;
