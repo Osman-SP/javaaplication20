@@ -14,6 +14,7 @@ public class Gramatica_Gramaticas {
     public Set<String> vt = new HashSet<>();
     public SimbolG simboloInicial;
     analizadorLexico Lexic;
+    public int[][] tablaLL1;
     
     // Arreglos finales
     public List<String> arrVN;   // [E, E', T, T', F]
@@ -442,6 +443,7 @@ public class Gramatica_Gramaticas {
 
         tabla[filaDollar][colDollar] = 999; // aceptar
 
+        this.tablaLL1 = tabla;
         return tabla;
     }
     
@@ -474,6 +476,185 @@ public class Gramatica_Gramaticas {
             }
         }
     }
+    
+    
+    public LadoIzq getReglaPorId(int id) {
+        for (int i = 0; i < numReglas; i++) {
+            if (reglas[i] != null && reglas[i].id == id) {
+                return reglas[i];
+            }
+        }
+        return null;
+    }
+
+    private String pilaToString(java.util.Deque<String> pila) {
+        StringBuilder sb = new StringBuilder();
+        java.util.Iterator<String> it = pila.descendingIterator(); // bottom -> top
+        while (it.hasNext()) {
+            sb.append(it.next()).append(' ');
+        }
+        return sb.toString().trim();
+    }
+
+    private String entradaToString(java.util.List<String> lexemas, int pos) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = pos; i < lexemas.size(); i++) {
+            sb.append(lexemas.get(i)).append(' ');
+        }
+        return sb.toString().trim();
+    }
+
+    public java.util.List<String[]> analizarCadenaLL1(String sigma, String rutaAFDLexico) throws Exception {
+
+        if (tablaLL1 == null) {
+            throw new IllegalStateException("La tabla LL(1) no ha sido construida.");
+        }
+        if (simboloInicial == null) {
+            throw new IllegalStateException("No se ha definido símbolo inicial.");
+        }
+        if (tokenVT == null || tokenVT.isEmpty()) {
+            throw new IllegalStateException("No se han asignado tokens a los terminales.");
+        }
+
+        java.util.List<String[]> pasos = new java.util.ArrayList<>();
+
+        // 1) Analizador léxico de sigma
+        analizadorLexico lex = new analizadorLexico(sigma, rutaAFDLexico);
+
+        // token(int) -> terminal(String)
+        java.util.Map<Integer, String> terminalPorToken = new java.util.HashMap<>();
+        for (java.util.Map.Entry<String, Integer> e : tokenVT.entrySet()) {
+            terminalPorToken.put(e.getValue(), e.getKey());
+        }
+
+        java.util.List<String> entradaSimbolos = new java.util.ArrayList<>();
+        java.util.List<String> entradaLexemas  = new java.util.ArrayList<>();
+
+        int tk;
+        while (true) {
+            tk = lex.yylex();
+            if (tk == Tokens.FIN) break;
+
+            String term = terminalPorToken.get(tk);
+            if (term == null) {
+                throw new RuntimeException(
+                    "Token léxico sin terminal asociado: código " +
+                    tk + ", lexema '" + lex.lexema + "'."
+                );
+            }
+
+            entradaSimbolos.add(term);      // para LL(1)
+            entradaLexemas.add(lex.lexema); // para mostrar
+        }
+
+        // Agregar $
+        entradaSimbolos.add("$");
+        entradaLexemas.add("$");
+
+        int pos = 0;
+
+        // 2) Pila: $ S
+        java.util.Deque<String> pila = new java.util.ArrayDeque<>();
+        pila.push("$");
+        pila.push(simboloInicial.nombSimb);
+
+        boolean aceptado = false;
+        boolean error    = false;
+
+        // 3) Bucle LL(1)
+        while (!pila.isEmpty() && !error && !aceptado) {
+
+            String top = pila.peek();
+            String a   = entradaSimbolos.get(pos);
+
+            String pilaStr    = pilaToString(pila);
+            String entradaStr = entradaToString(entradaLexemas, pos);
+            String accion;
+
+            // Caso aceptación directa
+            if ("$".equals(top) && "$".equals(a)) {
+                accion = "accept";
+                pasos.add(new String[]{ pilaStr, entradaStr, accion });
+                aceptado = true;
+                break;
+            }
+
+            boolean topEsNoTerminal = (idxVN != null && idxVN.containsKey(top));
+
+            if (!topEsNoTerminal) {
+                // === Terminal o $ en la pila ===
+                if (top.equals(a)) {
+                    pila.pop();
+                    pos++;
+                    accion = "pop";
+                    pasos.add(new String[]{ pilaStr, entradaStr, accion });
+                } else {
+                    accion = "error: se esperaba '" + top + "' y vino '" + a + "'";
+                    pasos.add(new String[]{ pilaStr, entradaStr, accion });
+                    error = true;
+                }
+
+            } else {
+                // === No terminal: usar tabla LL(1) ===
+                Integer fila = idxVN.get(top);
+                Integer col  = idxVT.get(a);
+                if (fila == null || col == null) {
+                    accion = "error: símbolo fuera de tabla M[" + top + "," + a + "]";
+                    pasos.add(new String[]{ pilaStr, entradaStr, accion });
+                    error = true;
+                    continue;
+                }
+
+                int idRegla = tablaLL1[fila][col];
+
+                if (idRegla == -1) {
+                    accion = "error: M[" + top + "," + a + "] = -1";
+                    pasos.add(new String[]{ pilaStr, entradaStr, accion });
+                    error = true;
+
+                } else if (idRegla == 999) {
+                    accion = "accept";
+                    pasos.add(new String[]{ pilaStr, entradaStr, accion });
+                    aceptado = true;
+
+                } else {
+                    LadoIzq regla = getReglaPorId(idRegla);
+                    pila.pop(); // quitar A
+
+                    java.util.List<SimbolG> alpha = regla.ladoDerecho;
+
+                    // No empujar epsilon
+                    if (!(alpha.size() == 1 &&
+                          "epsilon".equals(alpha.get(0).nombSimb))) {
+
+                        for (int k = alpha.size() - 1; k >= 0; k--) {
+                            pila.push(alpha.get(k).nombSimb);
+                        }
+                    }
+
+                    StringBuilder rhs = new StringBuilder();
+                    for (SimbolG s : alpha) {
+                        rhs.append(s.nombSimb).append(' ');
+                    }
+                    String produccion = regla.simIzq.nombSimb + " → " + rhs.toString().trim();
+
+                    accion = idRegla + ") " + produccion;
+                    pasos.add(new String[]{ pilaStr, entradaStr, accion });
+                }
+            }
+        }
+
+        if (!aceptado && !error) {
+            pasos.add(new String[]{
+                pilaToString(pila),
+                entradaToString(entradaLexemas, pos),
+                "error: análisis incompleto"
+            });
+        }
+
+        return pasos;
+    }
+
 
 
 }
@@ -498,4 +679,16 @@ final class Tokens {
     public static final int OR      = 30;
     public static final int PUNTO_Y_COMA = 40;
     public static final int FIN = 0;
+}
+
+class PasoLL1 {
+    public final String pila;
+    public final String cadena;
+    public final String accion;
+
+    public PasoLL1(String pila, String cadena, String accion) {
+        this.pila = pila;
+        this.cadena = cadena;
+        this.accion = accion;
+    }
 }
