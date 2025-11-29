@@ -4,18 +4,109 @@
  */
 package javaapplication20;
 
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author osman
  */
 public class PanelLL1 extends javax.swing.JPanel {
 
+    private javax.swing.table.DefaultTableModel tableModel;
+    
+    private String rutaArchivoAFD;
+    private String rutaArchivoAFD2;
+    
+    private Gramatica_Gramaticas gram;
+    private int[][] matrizLL1;
+    
+    private javax.swing.table.DefaultTableModel modelSimbolos;
+    private javax.swing.table.DefaultTableModel tableModel2;
+    private javax.swing.table.DefaultTableModel modelNoTerminales;
+    
+    public List<String> arrVN;   // [E, E', T, T', F]
+    public List<String> arrVT;   // [+, -, *, /, (, ), num, $]
+    public Map<String, Integer> idxVN;
+    public Map<String, Integer> idxVT;
+    public Map<String, Integer> tokenVT;   // terminal -> token (10,20,...)
+    
     /**
      * Creates new form PanelLL1
      */
     public PanelLL1() {
         initComponents();
+        
+        tableModel2 = (javax.swing.table.DefaultTableModel) tablaTerminal.getModel();
+        modelSimbolos = (javax.swing.table.DefaultTableModel) tablaTerminal.getModel();
+        modelNoTerminales = (javax.swing.table.DefaultTableModel) tablaNoTerminal.getModel();
+        
+        // Configurar el modelo para la tabla de resultados
+        tableModel = new javax.swing.table.DefaultTableModel(
+            new Object[]{"Token", "Lexema"}, // Nombres de las columnas
+            0 // Empezar con 0 filas
+        );
+
+        // Asignar el modelo a nuestra tabla
+        tblLexico.setModel(tableModel);
+        java.awt.Font sansSerifFont = new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 12);
+    
+        tblLexico.setDefaultRenderer(Object.class, new ErrorRowRenderer());
+        
+        // Aplicar fuente a las celdas de la tabla
+        tblLexico.setFont(sansSerifFont);
+    
+        //Aplicar la fuente al encabezado de la tabla (opcional, pero recomendado)
+        tblLexico.getTableHeader().setFont(sansSerifFont.deriveFont(java.awt.Font.BOLD, 13f));
     }
+    
+    private void llenarTablaNoTerminal() {
+        DefaultTableModel model = (DefaultTableModel) tablaNoTerminal.getModel();
+        model.setRowCount(0);
+        for (String A : gram.arrVN) {
+            model.addRow(new Object[]{ A });
+        }
+    }
+
+    private void llenarTablaTerminal() {
+        DefaultTableModel model = (DefaultTableModel) tablaTerminal.getModel();
+        model.setRowCount(0);
+        for (String a : gram.arrVT) {
+            if (a.equals("$")) continue; 
+            model.addRow(new Object[]{ a, "" });
+        }
+    }
+
+    private void llenarTablaLL1() {
+        int filas = matrizLL1.length;
+        int cols  = matrizLL1[0].length;
+
+        String[] headers = new String[cols + 1];
+        headers[0] = " ";
+        for (int j = 0; j < cols; j++)
+            headers[j+1] = gram.arrVT.get(j);
+
+        Object[][] data = new Object[filas][cols + 1];
+
+        for (int i = 0; i < filas; i++) {
+            data[i][0] = (i < gram.arrVN.size()) ? gram.arrVN.get(i) : "$";
+
+            for (int j = 0; j < cols; j++) {
+                int val = matrizLL1[i][j];
+                if (val == -1) data[i][j+1] = "-1";
+                else if (val == 999) data[i][j+1] = "acc";
+                else data[i][j+1] = val;
+            }
+        }
+
+        tablaLL1.setModel(new DefaultTableModel(data, headers) {
+            @Override public boolean isCellEditable(int r,int c){ return false; }
+        });
+    }
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -32,26 +123,28 @@ public class PanelLL1 extends javax.swing.JPanel {
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
+        txtGram = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
-        jTextField2 = new javax.swing.JTextField();
+        txtRutaArchivo = new javax.swing.JTextField();
         jButton3 = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
-        jTextField3 = new javax.swing.JTextField();
+        txtSigma = new javax.swing.JTextField();
         jButton4 = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         jTable2 = new javax.swing.JTable();
         jScrollPane3 = new javax.swing.JScrollPane();
-        jTable3 = new javax.swing.JTable();
+        tablaNoTerminal = new javax.swing.JTable();
         jScrollPane4 = new javax.swing.JScrollPane();
-        jTable4 = new javax.swing.JTable();
+        tablaTerminal = new javax.swing.JTable();
         jLabel4 = new javax.swing.JLabel();
         jScrollPane5 = new javax.swing.JScrollPane();
-        jTable5 = new javax.swing.JTable();
+        tablaLL1 = new javax.swing.JTable();
         jScrollPane6 = new javax.swing.JScrollPane();
-        jTable6 = new javax.swing.JTable();
+        tblLexico = new javax.swing.JTable();
         jButton5 = new javax.swing.JButton();
+        txtRutaArchivo2 = new javax.swing.JTextField();
+        jButton6 = new javax.swing.JButton();
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -95,9 +188,9 @@ public class PanelLL1 extends javax.swing.JPanel {
 
         jLabel2.setText("Gramática:");
 
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
+        txtGram.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField1ActionPerformed(evt);
+                txtGramActionPerformed(evt);
             }
         });
 
@@ -115,11 +208,21 @@ public class PanelLL1 extends javax.swing.JPanel {
         jButton2.setFont(new java.awt.Font("Rockwell", 1, 12)); // NOI18N
         jButton2.setForeground(new java.awt.Color(255, 255, 255));
         jButton2.setText("Asignar tokens a terminales");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         jButton3.setBackground(new java.awt.Color(255, 153, 0));
         jButton3.setFont(new java.awt.Font("Rockwell", 1, 12)); // NOI18N
         jButton3.setForeground(new java.awt.Color(255, 255, 255));
         jButton3.setText("Seleccionar AFD léxico");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         jLabel3.setText("Sigma:");
 
@@ -127,6 +230,11 @@ public class PanelLL1 extends javax.swing.JPanel {
         jButton4.setFont(new java.awt.Font("Rockwell", 1, 12)); // NOI18N
         jButton4.setForeground(new java.awt.Color(255, 255, 255));
         jButton4.setText("Analizar sintácticamente sigma");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
 
         jTable2.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -141,7 +249,7 @@ public class PanelLL1 extends javax.swing.JPanel {
         ));
         jScrollPane2.setViewportView(jTable2);
 
-        jTable3.setModel(new javax.swing.table.DefaultTableModel(
+        tablaNoTerminal.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null},
                 {null},
@@ -152,9 +260,9 @@ public class PanelLL1 extends javax.swing.JPanel {
                 "No terminal"
             }
         ));
-        jScrollPane3.setViewportView(jTable3);
+        jScrollPane3.setViewportView(tablaNoTerminal);
 
-        jTable4.setModel(new javax.swing.table.DefaultTableModel(
+        tablaTerminal.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null},
                 {null, null},
@@ -165,11 +273,11 @@ public class PanelLL1 extends javax.swing.JPanel {
                 "Terminal", "Token"
             }
         ));
-        jScrollPane4.setViewportView(jTable4);
+        jScrollPane4.setViewportView(tablaTerminal);
 
         jLabel4.setText("Tabla LL(1)");
 
-        jTable5.setModel(new javax.swing.table.DefaultTableModel(
+        tablaLL1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
                 {null, null, null, null},
@@ -180,9 +288,9 @@ public class PanelLL1 extends javax.swing.JPanel {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
-        jScrollPane5.setViewportView(jTable5);
+        jScrollPane5.setViewportView(tablaLL1);
 
-        jTable6.setModel(new javax.swing.table.DefaultTableModel(
+        tblLexico.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null},
                 {null, null},
@@ -193,12 +301,27 @@ public class PanelLL1 extends javax.swing.JPanel {
                 "Lexema", "Token"
             }
         ));
-        jScrollPane6.setViewportView(jTable6);
+        jScrollPane6.setViewportView(tblLexico);
 
         jButton5.setBackground(new java.awt.Color(255, 153, 0));
         jButton5.setFont(new java.awt.Font("Rockwell", 1, 12)); // NOI18N
         jButton5.setForeground(new java.awt.Color(255, 255, 255));
         jButton5.setText("Probar léxico");
+        jButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton5ActionPerformed(evt);
+            }
+        });
+
+        jButton6.setBackground(new java.awt.Color(255, 153, 0));
+        jButton6.setFont(new java.awt.Font("Rockwell", 1, 12)); // NOI18N
+        jButton6.setForeground(new java.awt.Color(255, 255, 255));
+        jButton6.setText("Seleccionar AFD GramGram");
+        jButton6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton6ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -210,7 +333,7 @@ public class PanelLL1 extends javax.swing.JPanel {
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jTextField1)
+                    .addComponent(txtGram)
                     .addComponent(jLabel4)
                     .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
@@ -229,13 +352,17 @@ public class PanelLL1 extends javax.swing.JPanel {
                                 .addGap(232, 232, 232)
                                 .addComponent(jButton4))
                             .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(txtRutaArchivo, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(jButton3))
-                            .addGroup(jPanel1Layout.createSequentialGroup()
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                                 .addComponent(jLabel3)
                                 .addGap(18, 18, 18)
-                                .addComponent(jTextField3)))
+                                .addComponent(txtSigma, javax.swing.GroupLayout.PREFERRED_SIZE, 396, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(txtRutaArchivo2, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jButton6)))
                         .addGap(43, 43, 43)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -249,18 +376,24 @@ public class PanelLL1 extends javax.swing.JPanel {
                 .addGap(15, 15, 15)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(15, 15, 15)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                    .addComponent(jLabel2)
-                    .addComponent(jTextField1)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtRutaArchivo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jButton3))
-                        .addGap(18, 18, 18)
+                        .addGap(28, 28, 28)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(txtRutaArchivo2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jButton6))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 32, Short.MAX_VALUE)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel3)
-                            .addComponent(jTextField3, javax.swing.GroupLayout.DEFAULT_SIZE, 112, Short.MAX_VALUE))))
+                            .addComponent(txtSigma, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel3)))
+                    .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(txtGram))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton1)
@@ -278,19 +411,181 @@ public class PanelLL1 extends javax.swing.JPanel {
                         .addGap(18, 18, 18)
                         .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jScrollPane2))
-                .addContainerGap(22, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         add(jPanel1, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
+    private void txtGramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtGramActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField1ActionPerformed
+    }//GEN-LAST:event_txtGramActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
+        String texto = txtGram.getText().trim();
+        if (texto.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Escribe una gramática primero.");
+            return;
+        }
+
+        try {
+            // 1) Crear y analizar
+            gram = new Gramatica_Gramaticas(texto, rutaArchivoAFD2, 200);
+            if (!gram.iniEval()) {
+                JOptionPane.showMessageDialog(this, "Gramática inválida.");
+                return;
+            }
+
+            // 2) Generar VN, VT, tokens, índices (TODO dentro de gramática)
+            gram.construirArreglosSimbolos();
+
+            // 3) Crear LL(1)
+            matrizLL1 = gram.TablaLL1();
+
+            // 4) Mostrar resultados en las tablas del panel
+            llenarTablaNoTerminal();
+            llenarTablaTerminal();
+            llenarTablaLL1();
+
+        } catch(Exception e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+            e.printStackTrace();
+        }
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        javax.swing.JFileChooser fileChooser = new javax.swing.JFileChooser();
+        fileChooser.setDialogTitle("Seleccionar archivo de AFD (.txt)");
+
+        int seleccion = fileChooser.showOpenDialog(this);
+
+        if (seleccion == javax.swing.JFileChooser.APPROVE_OPTION) {
+            java.io.File archivo = fileChooser.getSelectedFile();
+            this.rutaArchivoAFD = archivo.getAbsolutePath(); // Guardamos la ruta en la variable de instancia
+            txtRutaArchivo.setText(this.rutaArchivoAFD); // Mostramos la ruta en el TextField
+        }
+    }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton4ActionPerformed
+
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+        // --- 1. Obtener las entradas del usuario y validar ---
+        String cadena = txtSigma.getText();
+
+        if (cadena.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Por favor, ingresa una cadena para analizar.", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (this.rutaArchivoAFD == null || this.rutaArchivoAFD.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Por favor, carga un archivo de definición de AFD.", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // --- 2. Limpiar la tabla de resultados anteriores ---
+        tableModel.setRowCount(0);
+
+        // --- 3. Crear el analizador y procesar la cadena ---
+        try {
+            analizadorLexico analizador = new analizadorLexico(cadena, this.rutaArchivoAFD);
+
+            // El bucle que llama a yylex() hasta el fin de la cadena
+            while (true) {
+                int token = analizador.yylex();
+
+                // Si el token es FIN, terminamos el bucle
+                if (token == SimbEsp.FIN()) {
+                    tableModel.addRow(new Object[]{SimbEsp.FIN(), " "});
+                    break;
+                }
+
+                String lexema = analizador.lexema;
+
+                // Añadimos una nueva fila a la tabla con el resultado
+                tableModel.addRow(new Object[]{token, lexema});
+            }
+
+        } catch (Exception e) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Ocurrió un error durante el análisis: " + e.getMessage(), "Error de Análisis", javax.swing.JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_jButton5ActionPerformed
+
+    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
+        javax.swing.JFileChooser fileChooser = new javax.swing.JFileChooser();
+        fileChooser.setDialogTitle("Seleccionar archivo de AFD (.txt)");
+
+        int seleccion = fileChooser.showOpenDialog(this);
+
+        if (seleccion == javax.swing.JFileChooser.APPROVE_OPTION) {
+            java.io.File archivo = fileChooser.getSelectedFile();
+            this.rutaArchivoAFD2 = archivo.getAbsolutePath(); // Guardamos la ruta en la variable de instancia
+            txtRutaArchivo2.setText(this.rutaArchivoAFD2); // Mostramos la ruta en el TextField
+        }
+    }//GEN-LAST:event_jButton6ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        if (gram == null) {
+            javax.swing.JOptionPane.showMessageDialog(
+                this,
+                "Primero crea la gramática y la tabla LL(1).",
+                "Error",
+                javax.swing.JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+
+        javax.swing.table.TableModel model = tablaTerminal.getModel();
+        java.util.Map<String, Integer> mapaTokens = new java.util.LinkedHashMap<>();
+
+        for (int i = 0; i < model.getRowCount(); i++) {
+
+            Object symObj = model.getValueAt(i, 0);
+            Object tokObj = model.getValueAt(i, 1);
+
+            if (symObj == null) continue;
+
+            String terminal = symObj.toString().trim();
+            if (terminal.isEmpty()) continue;
+
+            // Puedes saltarte $ si no quieres asignarle token
+            if ("$".equals(terminal)) continue;
+
+            if (tokObj == null || tokObj.toString().trim().isEmpty()) {
+                javax.swing.JOptionPane.showMessageDialog(
+                    this,
+                    "Falta el token para el terminal '" + terminal + "' (fila " + (i + 1) + ").",
+                    "Error",
+                    javax.swing.JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+
+            try {
+                int token = Integer.parseInt(tokObj.toString().trim());
+                mapaTokens.put(terminal, token);
+            } catch (NumberFormatException ex) {
+                javax.swing.JOptionPane.showMessageDialog(
+                    this,
+                    "El token de la fila " + (i + 1) + " no es un número válido.",
+                    "Error",
+                    javax.swing.JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+        }
+
+        // Mandamos todo a la gramática
+        gram.actualizarTokensTerminales(mapaTokens);
+
+        javax.swing.JOptionPane.showMessageDialog(
+            this,
+            "Tokens asignados correctamente a los terminales.",
+            "OK",
+            javax.swing.JOptionPane.INFORMATION_MESSAGE
+        );
+    }//GEN-LAST:event_jButton2ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -299,6 +594,7 @@ public class PanelLL1 extends javax.swing.JPanel {
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
+    private javax.swing.JButton jButton6;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -313,12 +609,13 @@ public class PanelLL1 extends javax.swing.JPanel {
     private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JTable jTable1;
     private javax.swing.JTable jTable2;
-    private javax.swing.JTable jTable3;
-    private javax.swing.JTable jTable4;
-    private javax.swing.JTable jTable5;
-    private javax.swing.JTable jTable6;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
+    private javax.swing.JTable tablaLL1;
+    private javax.swing.JTable tablaNoTerminal;
+    private javax.swing.JTable tablaTerminal;
+    private javax.swing.JTable tblLexico;
+    private javax.swing.JTextField txtGram;
+    private javax.swing.JTextField txtRutaArchivo;
+    private javax.swing.JTextField txtRutaArchivo2;
+    private javax.swing.JTextField txtSigma;
     // End of variables declaration//GEN-END:variables
 }

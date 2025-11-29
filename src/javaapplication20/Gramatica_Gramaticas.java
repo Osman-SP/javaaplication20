@@ -3,6 +3,7 @@ package javaapplication20;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class Gramatica_Gramaticas {
@@ -387,49 +388,93 @@ public class Gramatica_Gramaticas {
     public int[][] TablaLL1() {
 
         int filas = arrVN.size() + 1; // +1 para fila $
-        int cols  = arrVT.size();     // VT ya incluye $
+        int cols  = arrVT.size();     // arrVT ya tiene $
 
+        // Se crea con -1 en todas las celdas
         int[][] tabla = new int[filas][cols];
 
         for (int i = 0; i < filas; i++)
-            java.util.Arrays.fill(tabla[i], -1); // vacío
+            for (int j = 0; j < cols; j++)
+                tabla[i][j] = -1; // ⬅️ LLENAR CON -1 DESDE EL INICIO
 
-        // 1) Llenar VN x VT con números de regla
+        // ============================================
+        // LLENAR ENTRADAS SIGUIENDO FIRST/FOLLOW
+        // ============================================
         for (int i = 0; i < numReglas; i++) {
+
             String A = reglas[i].simIzq.nombSimb;
             List<SimbolG> alpha = reglas[i].ladoDerecho;
             int idRegla = reglas[i].id;
 
             Set<SimbolG> firstAlpha = First(alpha);
+
             boolean tieneEps = false;
 
             for (SimbolG t : firstAlpha) {
-                if ("epsilon".equals(t.nombSimb)) {
+
+                if (t.nombSimb.equals("epsilon")) {
                     tieneEps = true;
                 } else {
-                    int f = idxVN.get(A);
-                    int c = idxVT.get(t.nombSimb);
-                    tabla[f][c] = idRegla;
+                    int fila = idxVN.get(A);
+                    int col  = idxVT.get(t.nombSimb);
+
+                    tabla[fila][col] = idRegla;  // ⬅️ REGISTRA LA REGLA
                 }
             }
 
             if (tieneEps) {
                 Set<SimbolG> followA = Follow(reglas[i].simIzq);
+
                 for (SimbolG b : followA) {
-                    int f = idxVN.get(A);
-                    int c = idxVT.get(b.nombSimb);
-                    tabla[f][c] = idRegla;
+                    int fila = idxVN.get(A);
+                    int col  = idxVT.get(b.nombSimb);
+
+                    tabla[fila][col] = idRegla;
                 }
             }
         }
 
-        // 2) Fila $ (última): accept en columna $
-        int filaPesos = arrVN.size();
-        int colPesos = idxVT.get("$");
-        tabla[filaPesos][colPesos] = 999; // por ejemplo 999 = accept
+        // ============================================
+        // Fila del símbolo $ (última)
+        // ============================================
+        int filaDollar = arrVN.size();
+        int colDollar = idxVT.get("$");
+
+        tabla[filaDollar][colDollar] = 999; // aceptar
 
         return tabla;
     }
+    
+    public void actualizarTokensTerminales(Map<String, Integer> nuevosTokens) {
+        if (nuevosTokens == null) return;
+
+        if (tokenVT == null) {
+            tokenVT = new java.util.LinkedHashMap<>();
+        } else {
+            tokenVT.clear();
+        }
+
+        // Guardamos el mapa terminal -> token
+        tokenVT.putAll(nuevosTokens);
+
+        // Propagamos el token a todos los símbolos terminales de las reglas
+        for (int i = 0; i < numReglas; i++) {
+            if (reglas[i] == null || reglas[i].ladoDerecho == null) continue;
+
+            for (SimbolG s : reglas[i].ladoDerecho) {
+                if (s == null) continue;
+
+                // Solo terminales "reales"
+                if (vt.contains(s.nombSimb) && !"epsilon".equals(s.nombSimb) && !"$".equals(s.nombSimb)) {
+                    Integer tok = tokenVT.get(s.nombSimb);
+                    if (tok != null) {
+                        s.token = tok;
+                    }
+                }
+            }
+        }
+    }
+
 
 }
 

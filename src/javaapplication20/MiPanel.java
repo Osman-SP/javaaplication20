@@ -27,6 +27,7 @@ public class MiPanel extends javax.swing.JFrame {
     public AFN elGranAFN;
     public AFD elAFDfinal;
     public Panelgram_gram panelGram_gram;
+    public PanelLL1 LL1;
     
     /**
      * Creates new form MiPanel
@@ -65,6 +66,7 @@ public class MiPanel extends javax.swing.JFrame {
         panelCalc = new PanelCalc();
         expReg = new PanelExpReg();
         panelGram_gram = new Panelgram_gram();
+        LL1 = new PanelLL1();
 
 
         // Los añadimos al panel contenedor, cada uno con un nombre único
@@ -81,6 +83,7 @@ public class MiPanel extends javax.swing.JFrame {
         PanelContenedor.add(panelCalc, "CALC");
         PanelContenedor.add(expReg, "EXPREG");
         PanelContenedor.add(panelGram_gram, "GRAM_GRAM");
+        PanelContenedor.add(LL1, "LL1");
 
         // Opcional: Mostramos el panel básico por defecto
         cardLayout.show(PanelContenedor, "Principal");
@@ -112,13 +115,13 @@ public class MiPanel extends javax.swing.JFrame {
         jMenu3 = new javax.swing.JMenu();
         jMenuItem4 = new javax.swing.JMenuItem();
         jMenuItem2 = new javax.swing.JMenuItem();
+        jMenuItem3 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setPreferredSize(null);
 
-        PanelContenedor.setPreferredSize(null);
         PanelContenedor.setRequestFocusEnabled(false);
         PanelContenedor.setLayout(new java.awt.BorderLayout());
+        getContentPane().add(PanelContenedor, java.awt.BorderLayout.CENTER);
 
         jMenuBar1.setFont(new java.awt.Font("Bahnschrift", 1, 14)); // NOI18N
 
@@ -239,24 +242,17 @@ public class MiPanel extends javax.swing.JFrame {
         });
         jMenu2.add(jMenuItem2);
 
+        jMenuItem3.setText("Analizador Sintactico LL(1)");
+        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem3ActionPerformed(evt);
+            }
+        });
+        jMenu2.add(jMenuItem3);
+
         jMenuBar1.add(jMenu2);
 
         setJMenuBar(jMenuBar1);
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(PanelContenedor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(PanelContenedor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
-        );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -322,6 +318,10 @@ public class MiPanel extends javax.swing.JFrame {
         cardLayout.show(PanelContenedor, "GRAM_GRAM");
     }//GEN-LAST:event_jMenuItem2ActionPerformed
 
+    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
+        cardLayout.show(PanelContenedor, "LL1");
+    }//GEN-LAST:event_jMenuItem3ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -374,6 +374,7 @@ public class MiPanel extends javax.swing.JFrame {
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;
     // End of variables declaration//GEN-END:variables
 }
