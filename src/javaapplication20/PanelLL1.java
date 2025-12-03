@@ -356,7 +356,7 @@ public class PanelLL1 extends javax.swing.JPanel {
         });
         jPanel1.add(jButton6, new org.netbeans.lib.awtextra.AbsoluteConstraints(757, 153, -1, -1));
 
-        add(jPanel1, java.awt.BorderLayout.CENTER);
+        add(jPanel1, java.awt.BorderLayout.LINE_START);
     }// </editor-fold>//GEN-END:initComponents
 
     private void txtGramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtGramActionPerformed

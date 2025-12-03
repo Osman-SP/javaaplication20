@@ -28,6 +28,7 @@ public class MiPanel extends javax.swing.JFrame {
     public AFD elAFDfinal;
     public Panelgram_gram panelGram_gram;
     public PanelLL1 LL1;
+    public PanelLR0 LR0;
     
     /**
      * Creates new form MiPanel
@@ -67,6 +68,7 @@ public class MiPanel extends javax.swing.JFrame {
         expReg = new PanelExpReg();
         panelGram_gram = new Panelgram_gram();
         LL1 = new PanelLL1();
+        LR0 = new PanelLR0();
 
 
         // Los añadimos al panel contenedor, cada uno con un nombre único
@@ -84,6 +86,7 @@ public class MiPanel extends javax.swing.JFrame {
         PanelContenedor.add(expReg, "EXPREG");
         PanelContenedor.add(panelGram_gram, "GRAM_GRAM");
         PanelContenedor.add(LL1, "LL1");
+        PanelContenedor.add(LR0, "LR0");
 
         // Opcional: Mostramos el panel básico por defecto
         cardLayout.show(PanelContenedor, "Principal");
@@ -116,6 +119,7 @@ public class MiPanel extends javax.swing.JFrame {
         jMenuItem4 = new javax.swing.JMenuItem();
         jMenuItem2 = new javax.swing.JMenuItem();
         jMenuItem3 = new javax.swing.JMenuItem();
+        jMenuItem5 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -250,6 +254,14 @@ public class MiPanel extends javax.swing.JFrame {
         });
         jMenu2.add(jMenuItem3);
 
+        jMenuItem5.setText("Analizador Sintactico LR(0)");
+        jMenuItem5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem5ActionPerformed(evt);
+            }
+        });
+        jMenu2.add(jMenuItem5);
+
         jMenuBar1.add(jMenu2);
 
         setJMenuBar(jMenuBar1);
@@ -322,6 +334,10 @@ public class MiPanel extends javax.swing.JFrame {
         cardLayout.show(PanelContenedor, "LL1");
     }//GEN-LAST:event_jMenuItem3ActionPerformed
 
+    private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem5ActionPerformed
+        cardLayout.show(PanelContenedor, "LR0");
+    }//GEN-LAST:event_jMenuItem5ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -376,5 +392,6 @@ public class MiPanel extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;
+    private javax.swing.JMenuItem jMenuItem5;
     // End of variables declaration//GEN-END:variables
 }
