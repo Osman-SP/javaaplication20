@@ -16,6 +16,8 @@ public class Gramatica_Gramaticas {
     analizadorLexico Lexic;
     public int[][] tablaLL1;
     
+
+    
     // Arreglos finales
     public List<String> arrVN;   // [E, E', T, T', F]
     public List<String> arrVT;   // [mas, menos, prod, div, parI, parD, num, $]
