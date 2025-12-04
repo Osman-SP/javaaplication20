@@ -1,8 +1,8 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
- */
 package javaapplication20;
+
+import java.awt.Component;
+import javax.swing.JTable;
+import javax.swing.table.TableCellRenderer;
 
 /**
  *
@@ -18,8 +18,6 @@ public class PanelLR0 extends javax.swing.JPanel {
     private AnalizadorLR0 analLR0;
 
     // para recordar la ruta de los AFD (si usas 2 diferentes)
-    private String rutaAFDLexico;
-    private String rutaAFDGramGram;
     /**
      * Creates new form PanelLR0
      */
@@ -28,6 +26,64 @@ public class PanelLR0 extends javax.swing.JPanel {
         
         tableModel = (javax.swing.table.DefaultTableModel) tblLexico.getModel();
     }
+    
+    private void configurarRendererTablaLR0() {
+        tablaLR0.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
+            @Override
+            public java.awt.Component getTableCellRendererComponent(
+                    javax.swing.JTable table, Object value,
+                    boolean isSelected, boolean hasFocus,
+                    int row, int column) {
+
+                java.awt.Component c = super.getTableCellRendererComponent(
+                        table, value, isSelected, hasFocus, row, column);
+
+                // Siempre opaco para que se vea el fondo
+                setOpaque(true);
+
+                // Texto de la celda
+                String txt = (value == null) ? "" : value.toString().trim();
+
+                // Columna 0 = número de estado: la dejamos normal
+                if (column == 0) {
+                    setBackground(java.awt.Color.WHITE);
+                    setForeground(java.awt.Color.BLACK);
+                    return c;
+                }
+
+                // ====== ACTION / GOTO ======
+
+                // Si está vacío, mostramos -1 en gris
+                if (txt.isEmpty()) {
+                    setText("-1");
+                    setBackground(java.awt.Color.WHITE);
+                    setForeground(java.awt.Color.GRAY);
+                    return c;
+                }
+
+                // SHIFT: empieza con 'd'  (desplazamiento)
+                if (txt.startsWith("d")) {
+                    setBackground(new java.awt.Color(200, 255, 200)); // verde suave
+                    setForeground(java.awt.Color.BLACK);
+                    return c;
+                }
+
+                // REDUCE: empieza con 'r'
+                if (txt.startsWith("r")) {
+                    setBackground(new java.awt.Color(255, 200, 200)); // rojo suave
+                    setForeground(java.awt.Color.BLACK);
+                    return c;
+                }
+
+                // Otros valores (números de GOTO, 'acc', etc.)
+                setBackground(java.awt.Color.WHITE);
+                setForeground(java.awt.Color.BLACK);
+
+                return c;
+            }
+        });
+    }
+
     
     private void llenarTablaNoTerminales() {
         if (analLR0 == null) return;
@@ -42,6 +98,36 @@ public class PanelLR0 extends javax.swing.JPanel {
 
         tablaNoTerminales.setModel(model);
     }
+    
+    private void autoAjustarColumnas(JTable table) {
+        final int margin = 10; // espacio extra opcional
+
+        for (int col = 0; col < table.getColumnCount(); col++) {
+            int ancho = 50; // ancho mínimo
+
+            // Revisar cada fila para calcular ancho máximo del texto
+            for (int row = 0; row < table.getRowCount(); row++) {
+                TableCellRenderer renderer = table.getCellRenderer(row, col);
+                Component comp = table.prepareRenderer(renderer, row, col);
+                ancho = Math.max(comp.getPreferredSize().width + margin, ancho);
+            }
+
+            // También considerar el encabezado
+            TableCellRenderer headerRenderer =
+                    table.getTableHeader().getDefaultRenderer();
+            Component compHeader =
+                    headerRenderer.getTableCellRendererComponent(
+                            table,
+                            table.getColumnModel().getColumn(col).getHeaderValue(),
+                            false, false, -1, col);
+
+            ancho = Math.max(ancho, compHeader.getPreferredSize().width + margin);
+
+            // Finalmente asignar ancho calculado
+            table.getColumnModel().getColumn(col).setPreferredWidth(ancho);
+        }
+    }
+
 
     private void llenarTablaTerminales() {
         if (analLR0 == null) return;
@@ -101,6 +187,9 @@ public class PanelLR0 extends javax.swing.JPanel {
         }
 
         tablaLR0.setModel(model);
+        tablaLR0.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        autoAjustarColumnas(tablaLR0);
+        configurarRendererTablaLR0();
     }
     
     private void llenarTablaIrA() {
@@ -108,29 +197,40 @@ public class PanelLR0 extends javax.swing.JPanel {
 
         javax.swing.table.DefaultTableModel model =
                 new javax.swing.table.DefaultTableModel(
-                        new Object[]{"Edo", "IrA(Edo, Símbolo)", "Items destino"}, 0);
+                        new Object[]{"Edo", "IrA(Edo, Símbolo)", "Items destino"}, 0) {
+
+                    @Override
+                    public boolean isCellEditable(int row, int column) {
+                        return false; // que la tabla IrA no sea editable
+                    }
+                };
 
         for (int k = 0; k < analLR0.numRenglonesIrA; k++) {
             Inf_IrA info = analLR0.resultIrA[k];
             if (info == null) continue;
 
-            // la fila inicial tiene irA_Sj = -1 (solo describe S0), también la mostramos
-            String edoOrigen  = (info.irA_Sj >= 0) ? String.valueOf(info.irA_Sj) : "";
+            String edoOrigen;
             String irAString;
+            String items = (info.ConjuntoItems != null) ? info.ConjuntoItems : "";
 
-            if (info.irA_Sj >= 0) {
-                irAString = "IrA(" + info.irA_Sj + ", " + info.irA_Simbolo + ") = " + info.Si;
-            } else {
+            // Fila especial de S0
+            if (info.irA_Sj < 0) {
+                edoOrigen = "0";          // si quieres, puedes mostrar explícitamente el 0
                 irAString = "S0";
+            } else {
+                edoOrigen = String.valueOf(info.irA_Sj);  // estado origen
+                irAString = "IrA(" + info.irA_Sj + ", " + info.irA_Simbolo + ") = " + info.Si;
             }
 
-            String items = info.ConjuntoItems; // ya lo llenas en CrearTablaLR0
-
-            model.addRow(new Object[]{ edoOrigen, irAString, items });
+            model.addRow(new Object[]{edoOrigen, irAString, items});
         }
 
         tablaIrA.setModel(model);
+        tablaIrA.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF); // para que aparezca scroll horizontal
+        autoAjustarColumnas(tablaIrA);
+
     }
+
 
     
 
@@ -145,7 +245,6 @@ public class PanelLR0 extends javax.swing.JPanel {
 
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        txtGramatica = new javax.swing.JTextField();
         jButton2 = new javax.swing.JButton();
         txtRutaArchivo = new javax.swing.JTextField();
         jButton3 = new javax.swing.JButton();
@@ -170,6 +269,8 @@ public class PanelLR0 extends javax.swing.JPanel {
         jLabel5 = new javax.swing.JLabel();
         jScrollPane7 = new javax.swing.JScrollPane();
         tablaLR0 = new javax.swing.JTable();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        txtGramatica = new javax.swing.JTextArea();
 
         setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
@@ -197,13 +298,6 @@ public class PanelLR0 extends javax.swing.JPanel {
         );
 
         add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1210, 90));
-
-        txtGramatica.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtGramaticaActionPerformed(evt);
-            }
-        });
-        add(txtGramatica, new org.netbeans.lib.awtextra.AbsoluteConstraints(83, 101, 401, 169));
 
         jButton2.setBackground(new java.awt.Color(102, 0, 204));
         jButton2.setFont(new java.awt.Font("Rockwell", 1, 12)); // NOI18N
@@ -378,11 +472,13 @@ public class PanelLR0 extends javax.swing.JPanel {
         jScrollPane7.setViewportView(tablaLR0);
 
         add(jScrollPane7, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 480, 401, 150));
-    }// </editor-fold>//GEN-END:initComponents
 
-    private void txtGramaticaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtGramaticaActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtGramaticaActionPerformed
+        txtGramatica.setColumns(20);
+        txtGramatica.setRows(5);
+        jScrollPane1.setViewportView(txtGramatica);
+
+        add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 100, 400, 160));
+    }// </editor-fold>//GEN-END:initComponents
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
                                                 
@@ -580,6 +676,9 @@ public class PanelLR0 extends javax.swing.JPanel {
     try {
         // 1) Crear analizador LR(0) con la gramática y el AFD de GramGram
         analLR0 = new AnalizadorLR0(gr, this.rutaArchivoAFD2);
+        
+        analLR0.setRutaAFDLexico(this.rutaArchivoAFD); // CalculadoraLnLexico.txt
+
 
         // 2) Construir autómata LR(0) (conjuntos Si e IrA)
         analLR0.CrearTablaLR0();
@@ -622,6 +721,7 @@ public class PanelLR0 extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
@@ -634,7 +734,7 @@ public class PanelLR0 extends javax.swing.JPanel {
     private javax.swing.JTable tablaNoTerminales;
     private javax.swing.JTable tablaTerminales;
     private javax.swing.JTable tblLexico;
-    private javax.swing.JTextField txtGramatica;
+    private javax.swing.JTextArea txtGramatica;
     private javax.swing.JTextField txtRutaArchivo;
     private javax.swing.JTextField txtRutaArchivo2;
     private javax.swing.JTextField txtSigma;

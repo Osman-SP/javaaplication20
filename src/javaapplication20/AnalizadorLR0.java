@@ -1,7 +1,9 @@
 package javaapplication20;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
 
 /**
@@ -22,6 +24,9 @@ public class AnalizadorLR0 {
     public SimbolG[] vt;
     public int[] vt3;
     public HashSet<String> v;
+    public LadoIzq reglaAumentada;
+    private String rutaAFDGramGram;
+    private String rutaAFDLexico; 
     
     
     public LR0_Conj_Sj[] estadosLR0;   // estados S0, S1, S2,...
@@ -31,11 +36,40 @@ public class AnalizadorLR0 {
     public int[][] gotoLR0;            // tabla GOTO   [estado][noTerminal]
 
 
-     public AnalizadorLR0(String cadGramatica, String afdGramGram){
+    public AnalizadorLR0(String cadGramatica, String afdGramGram){
         gram = cadGramatica;
+        rutaAFDGramGram = afdGramGram;  // ⬅ guardamos la ruta
         // Este AFD es el que reconoce los símbolos de la gramática (SIMBOLO, FLECHA, OR, PUNTOYCOMA, etc.)
         descRecG = new Gramatica_Gramaticas(cadGramatica, afdGramGram, 5001);
     }
+    
+    public void setRutaAFDLexico(String ruta) {
+        this.rutaAFDLexico = ruta;
+    }
+     
+    private LadoIzq obtenerReglaLR0(int numRegla) {
+        LadoIzq r;
+
+        if (numRegla == 0) {
+            r = reglaAumentada;
+        } else {
+            r = descRecG.reglas[numRegla - 1];
+        }
+
+        // --- SOLO PARA LR(0): tratar "epsilon" como producción vacía ---
+        if (r.ladoDerecho.size() == 1 && 
+            "epsilon".equals(r.ladoDerecho.get(0).nombSimb)) {
+
+            // Creamos UNA COPIA VACÍA de la regla
+            LadoIzq vacia = new LadoIzq();
+            vacia.simIzq = r.simIzq;
+            vacia.ladoDerecho = new java.util.ArrayList<>(); // ← ahora ε real
+            return vacia;
+        }
+
+        return r;
+    }
+
 
     // Si quieres seguir teniendo el constructor de un solo parámetro, 
     // lo puedes dejar como algo “por defecto”, pero ya no será el que use tu panel:
@@ -46,12 +80,12 @@ public class AnalizadorLR0 {
         descRecG = new Gramatica_Gramaticas(cadGramatica, archAFDlexiGramGramPorDefecto, 5001);
     }
     
-    public String ObtenerCadenaItems(HashSet<ItemLR0> items) {
+        public String ObtenerCadenaItems(HashSet<ItemLR0> items) {
         StringBuilder sb = new StringBuilder();
 
         for (ItemLR0 it : items) {
-            // Obtener la regla
-            LadoIzq regla = descRecG.reglas[it.numRegla];
+            // Obtener la regla (0 = aumentada, >0 = normal)
+            LadoIzq regla = obtenerReglaLR0(it.numRegla);
             if (regla == null) continue;
 
             String lhs = regla.simIzq.nombSimb;
@@ -60,23 +94,23 @@ public class AnalizadorLR0 {
 
             // Lado derecho con el punto
             for (int i = 0; i < regla.ladoDerecho.size(); i++) {
-                if (i == it.posPunto) sb.append("· ");
+                if (i == it.posPunto) sb.append("■ ");
                 sb.append(regla.ladoDerecho.get(i).nombSimb).append(' ');
             }
 
             // Si el punto está al final
             if (it.posPunto == regla.ladoDerecho.size())
-                sb.append("·");
+                sb.append("■");
 
             sb.append("], ");
         }
 
-        // eliminar coma final
         if (sb.length() >= 2)
             sb.setLength(sb.length() - 2);
 
         return sb.toString();
     }
+
 
 
     public void CrearTablaLR0() {
@@ -99,24 +133,71 @@ public class AnalizadorLR0 {
         // Sj sin analizar, quedan en una cola
         Queue<LR0_Conj_Sj> Q = new LinkedList<>();
 
-        // Analizar gramática con el descenso recursivo
+        // 1) Analizar gramática con el descenso recursivo
         descRecG.iniEval();
 
-        // v = vt U vn
+        // ======================================================
+        // 2) Crear regla aumentada S' -> S   (SOLO PARA LR(0))
+        //    Regla 0 en el mundo LR(0)
+        // ======================================================
+        String S = descRecG.simboloInicial.nombSimb;
+        SimbolG Sprima = new SimbolG(S + "'", -1, false);
+
+        this.reglaAumentada = new LadoIzq();
+        this.reglaAumentada.simIzq = Sprima;
+        this.reglaAumentada.ladoDerecho = new java.util.ArrayList<>();
+        // RHS: S
+        this.reglaAumentada.ladoDerecho.add(new SimbolG(S, -1, false));
+
+        // S' se considera no terminal SOLO para LR(0)
+        descRecG.vn.add(Sprima.nombSimb);
+
+        // ======================================================
+        // 3) Construir arreglos ordenados VT y VN (arrVT, arrVN)
+        //    y usarlos para vt2, vn, v
+        // ======================================================
+        descRecG.construirArreglosSimbolos();
+
+        // arrVT incluye "$" al final; para LR(0) vt2 NO debe incluir "$"
+        java.util.List<String> vtLista = new java.util.ArrayList<>();
+        if (descRecG.arrVT != null) {
+            for (String s2 : descRecG.arrVT) {
+                if (!"$".equals(s2)) {
+                    vtLista.add(s2);
+                }
+            }
+        }
+
+        // Terminales ordenados
+        vt2 = vtLista.toArray(new String[0]);
+        vt  = new SimbolG[vt2.length];
+        vt3 = new int[vt2.length];  // por si después asignas tokens
+
+        for (int i = 0; i < vt2.length; i++) {
+            vt[i] = new SimbolG(vt2[i], -1, true);
+        }
+
+        // No terminales ordenados
+        if (descRecG.arrVN != null) {
+            vn = descRecG.arrVN.toArray(new String[0]);
+        } else {
+            vn = new String[0];
+        }
+
+        // v = VT ∪ VN   (símbolos sobre los que se calcula IrA)
         v = new HashSet<>();
-        v.clear();
-        for (String simb : descRecG.vt) {
-            v.add(simb);
-        }
-        for (String simb : descRecG.vn) {
-            v.add(simb);
-        }
+        for (String s2 : vt2) v.add(s2);
+        for (String s2 : vn)  v.add(s2);
+
+        // ======================================================
+        // 4) Construcción de C vía Cerradura / IrA
+        // ======================================================
 
         resultIrA = new Inf_IrA[1000];
 
-        // S0: Cerradura({ [regla 0, punto 0] })
+        // S0: Cerradura({ [regla 0, punto 0] })  =>  S' -> · S
         conjItems.clear();
-        conjItems.add(new ItemLR0(0, 0)); // asumimos que la regla 0 es S' -> S
+        conjItems.add(new ItemLR0(0, 0)); // 0 = regla aumentada S' -> S
 
         j = 0;
         conjSj.Sj = CerraduraLR0(conjItems);
@@ -132,13 +213,13 @@ public class AnalizadorLR0 {
         resultIrA[numRenglonesIrA].ConjuntoItems = ObtenerCadenaItems(conjSj.Sj);
         numRenglonesIrA++;
 
-        j++; // contador de conjuntos Sj
+        j++; // siguiente índice de estado
 
-        // Construcción de C vía cerradura/IrA
+        // Construcción de C con cerradura + IrA
         while (!Q.isEmpty()) {
             conjSj = Q.poll();
 
-            // Para cada símbolo de v = vt U vn
+            // Para cada símbolo de v = vt ∪ vn
             for (String simb : v) {
                 // IrA(Sj, simb)
                 sjAux = IrA_LR0(conjSj.Sj, simb);
@@ -147,17 +228,16 @@ public class AnalizadorLR0 {
                     continue;
                 }
 
-                // Verificar si este SjAux ya existe en C
+                // Verificar si este conjunto ya existe en C
                 existe = false;
 
                 for (LR0_Conj_Sj elemSj : C) {
-                    // Comparamos los conjuntos de items por igualdad
                     if (elemSj.Sj.equals(sjAux)) {
                         existe = true;
 
                         resultIrA[numRenglonesIrA] = new Inf_IrA();
-                        resultIrA[numRenglonesIrA].Si = elemSj.j;   // estado destino
-                        resultIrA[numRenglonesIrA].irA_Sj = conjSj.j; // estado origen
+                        resultIrA[numRenglonesIrA].Si = elemSj.j;      // estado destino
+                        resultIrA[numRenglonesIrA].irA_Sj = conjSj.j;  // estado origen
                         resultIrA[numRenglonesIrA].irA_Simbolo = simb;
                         // resultIrA[numRenglonesIrA].ConjuntoItems = ObtenerCadenaItems(sjAux);
                         numRenglonesIrA++;
@@ -173,10 +253,10 @@ public class AnalizadorLR0 {
                     conjSjAux.j = j;
 
                     resultIrA[numRenglonesIrA] = new Inf_IrA();
-                    resultIrA[numRenglonesIrA].Si = j;            // estado destino
-                    resultIrA[numRenglonesIrA].irA_Sj = conjSj.j; // estado origen
+                    resultIrA[numRenglonesIrA].Si = j;               // estado destino
+                    resultIrA[numRenglonesIrA].irA_Sj = conjSj.j;    // estado origen
                     resultIrA[numRenglonesIrA].irA_Simbolo = simb;
-                    // resultIrA[numRenglonesIrA].ConjuntoItems = ObtenerCadenaItems(sjAux);
+                    resultIrA[numRenglonesIrA].ConjuntoItems = ObtenerCadenaItems(sjAux);
                     numRenglonesIrA++;
 
                     j++;
@@ -185,34 +265,21 @@ public class AnalizadorLR0 {
                 }
             }
         }
-        
+
+        // ======================================================
+        // 5) Copiar los estados a arreglo por índice j
+        // ======================================================
         this.numEstados = C.size();
         this.estadosLR0 = new LR0_Conj_Sj[numEstados];
-        for (LR0_Conj_Sj s : C) {
-            this.estadosLR0[s.j] = s;  // S_j va en la posición j
-        }
 
-        // Construcción de arreglos de terminales y no terminales
-        vt  = new SimbolG[descRecG.vt.size()]; // columnas posibles
-        vt2 = new String[descRecG.vt.size()];  // nombres de terminales
-        vt3 = new int[descRecG.vt.size()];     // tokens, si los asignas después
-        vn  = new String[descRecG.vn.size()];  // no terminales
-
-        j = 0;
-        // Se llenan los arreglos de terminales
-        for (String s : descRecG.vt) {
-            vt[j] = new SimbolG(s, -1, true); // falta asignarle token real
-            vt2[j] = s;
-            // vt3[j] = ... // cuando tengas los tokens
-            j++;
-        }
-
-        j = 0;
-        // Se llena el arreglo de no terminales
-        for (String s : descRecG.vn) {
-            vn[j++] = s;
+        for (LR0_Conj_Sj sEstado : C) {
+            // S_j va en la posición j
+            if (sEstado.j >= 0 && sEstado.j < numEstados) {
+                this.estadosLR0[sEstado.j] = sEstado;
+            }
         }
     }
+
     
     public void construirTablasLR0() {
 
@@ -277,21 +344,20 @@ public class AnalizadorLR0 {
         }
 
         // ----- 4. REDUCE y ACCEPT a partir de los items de cada estado -----
-        for (int i = 0; i < numEstados; i++) {
-            LR0_Conj_Sj estado = estadosLR0[i];
-            if (estado == null || estado.Sj == null) continue;
+            for (int i = 0; i < numEstados; i++) {
+                LR0_Conj_Sj estado = estadosLR0[i];
+                if (estado == null || estado.Sj == null) continue;
 
-            for (ItemLR0 item : estado.Sj) {
-                LadoIzq reg = descRecG.reglas[item.numRegla];
+                        for (ItemLR0 item : estado.Sj) {
+                LadoIzq reg = obtenerReglaLR0(item.numRegla);
                 if (reg == null || reg.ladoDerecho == null) continue;
 
                 int len = reg.ladoDerecho.size();
 
-                // ¿el punto está al final? A -> α ·
                 if (item.posPunto == len) {
 
-                    // CASO ACCEPT: S' -> S ·
-                    if (item.numRegla == 0) {  // asumimos regla 0 es S' -> S
+                    // CASO ACCEPT: regla 0 = S' -> S
+                    if (item.numRegla == 0) {
                         Integer colPesos = idxTerm.get("$");
                         if (colPesos != null) {
                             actionLR0[i][colPesos] = "acc";
@@ -300,17 +366,14 @@ public class AnalizadorLR0 {
                         // CASO REDUCE: A -> α ·   (regla item.numRegla)
                         String accionReduce = "r" + item.numRegla;
 
-                        // LR(0) puro: reduce para TODOS los terminales (incluyendo $)
                         for (java.util.Map.Entry<String,Integer> e : idxTerm.entrySet()) {
                             int col = e.getValue();
 
-                            // si la celda está vacía, ponemos reduce
                             if (actionLR0[i][col] == null || actionLR0[i][col].isEmpty()) {
                                 actionLR0[i][col] = accionReduce;
                             } else {
-                                // aquí podrías detectar conflictos shift/reduce o reduce/reduce
-                                // por ahora los dejamos silenciosos o podrías imprimir un warning
-                                // System.out.println("Conflicto en estado " + i + ", simbolo " + e.getKey());
+                                // Aquí podrías avisar de conflictos
+                                System.out.println("Conflicto en estado " + i + ", simbolo " + e.getKey());
                             }
                         }
                     }
@@ -332,40 +395,34 @@ public class AnalizadorLR0 {
     }
 
     // Cerradura de un conjunto de items LR(0)
-    public HashSet<ItemLR0> CerraduraLR0(HashSet<ItemLR0> conjItems) {
-        // J empieza siendo el conjunto que nos dan
+        public HashSet<ItemLR0> CerraduraLR0(HashSet<ItemLR0> conjItems) {
         HashSet<ItemLR0> J = new HashSet<>(conjItems);
-
         boolean cambio;
 
         do {
             cambio = false;
 
-            // Copia para poder iterar aunque J crezca
             HashSet<ItemLR0> copia = new HashSet<>(J);
 
             for (ItemLR0 it : copia) {
-                LadoIzq regla = descRecG.reglas[it.numRegla];
+                LadoIzq regla = obtenerReglaLR0(it.numRegla);
                 if (regla == null || regla.ladoDerecho == null) continue;
 
-                // ¿el punto NO está al final de la producción?
                 if (it.posPunto < regla.ladoDerecho.size()) {
                     SimbolG B = regla.ladoDerecho.get(it.posPunto);
 
-                    // Si lo que sigue del punto es un NO TERMINAL
-                    // descRecG.vn es el conjunto de no terminales
                     if (descRecG.vn.contains(B.nombSimb)) {
                         String nombreB = B.nombSimb;
 
-                        // Para cada regla B -> γ
+                        // Para cada regla REAL B -> γ  (índice r en reglas[], pero numRegla = r+1)
                         for (int r = 0; r < descRecG.numReglas; r++) {
                             LadoIzq regB = descRecG.reglas[r];
                             if (regB == null || regB.simIzq == null) continue;
 
                             if (regB.simIzq.nombSimb.equals(nombreB)) {
-                                ItemLR0 nuevo = new ItemLR0(r, 0);
+                                int numRegLR0 = r + 1;   // ⚠️ desplazamiento
+                                ItemLR0 nuevo = new ItemLR0(numRegLR0, 0);
 
-                                // Si se agregó algo nuevo, repetiremos el ciclo
                                 if (J.add(nuevo)) {
                                     cambio = true;
                                 }
@@ -380,21 +437,19 @@ public class AnalizadorLR0 {
         return J;
     }
 
+
     // Mover(I, X): desplaza el punto sobre X (sin cerradura)
     public HashSet<ItemLR0> MoverLR0(HashSet<ItemLR0> I, String X) {
         HashSet<ItemLR0> movidos = new HashSet<>();
 
         for (ItemLR0 it : I) {
-            LadoIzq regla = descRecG.reglas[it.numRegla];
+            LadoIzq regla = obtenerReglaLR0(it.numRegla);
             if (regla == null || regla.ladoDerecho == null) continue;
 
-            // ¿el punto está antes de algún símbolo?
             if (it.posPunto < regla.ladoDerecho.size()) {
                 SimbolG s = regla.ladoDerecho.get(it.posPunto);
 
-                // ¿ese símbolo es X?
                 if (s.nombSimb.equals(X)) {
-                    // Creamos el item con el punto adelantado
                     movidos.add(new ItemLR0(it.numRegla, it.posPunto + 1));
                 }
             }
@@ -402,6 +457,7 @@ public class AnalizadorLR0 {
 
         return movidos;
     }
+
 
     // IrA(I, X) = Cerradura( Mover(I, X) )
     public HashSet<ItemLR0> IrA_LR0(HashSet<ItemLR0> I, String X) {
@@ -415,14 +471,50 @@ public class AnalizadorLR0 {
     public java.util.List<String[]> analizarCadenaLR0(String sigma) {
         java.util.List<String[]> pasos = new java.util.ArrayList<>();
 
-        // --- 1. Construir lista de símbolos de entrada ---
-        java.util.List<String> entrada = new java.util.ArrayList<>();
-        for (String tok : sigma.trim().split("\\s+")) {
-            if (!tok.isEmpty()) entrada.add(tok);
+        if (rutaAFDLexico == null || rutaAFDLexico.isEmpty()) {
+            throw new IllegalStateException("No se ha configurado la ruta del AFD léxico para sigma.");
+        }
+
+        // ================================
+        // 1) LÉXICO: sigma -> TERMINALES + LEXEMAS
+        // ================================
+        analizadorLexico lex = new analizadorLexico(sigma, rutaAFDLexico);
+
+        java.util.List<String> entrada        = new java.util.ArrayList<>(); // nombres de terminal (num, mas,...)
+        java.util.List<String> entradaLexemas = new java.util.ArrayList<>(); // lexemas originales (3.8, +, ...)
+
+        // token(int) -> nombre de terminal(String) según vt2/vt3
+        java.util.Map<Integer, String> terminalPorToken = new java.util.HashMap<>();
+
+        for (int i = 0; i < vt2.length; i++) {
+            int tok = vt3[i];
+            if (tok != 0 && tok != -1) { // según cómo inicialices vt3
+                terminalPorToken.put(tok, vt2[i]);  // ej: 100 -> "num"
+            }
+        }
+
+        int tk;
+        while (true) {
+            tk = lex.yylex();
+            if (tk == SimbEsp.FIN()) break;
+
+            String term = terminalPorToken.get(tk);
+            if (term == null) {
+                throw new RuntimeException(
+                    "Token léxico sin terminal LR(0) asociado: código " +
+                    tk + ", lexema '" + lex.lexema + "'."
+                );
+            }
+
+            entrada.add(term);             // p.ej. "num"
+            entradaLexemas.add(lex.lexema); // p.ej. "3.8"
         }
         entrada.add("$");
+        entradaLexemas.add("$");
 
-        // --- 2. Mapas de terminales / no terminales ---
+        // ================================
+        // 2) Mapas de terminales / no terminales
+        // ================================
         int numTerm = vt2.length + 1; // + "$"
         String[] terminals = new String[numTerm];
         for (int i = 0; i < vt2.length; i++) terminals[i] = vt2[i];
@@ -434,7 +526,9 @@ public class AnalizadorLR0 {
         java.util.Map<String, Integer> idxNoTerm = new java.util.HashMap<>();
         for (int i = 0; i < vn.length; i++) idxNoTerm.put(vn[i], i);
 
-        // --- 3. Pila ---
+        // ================================
+        // 3) Pila LR(0)
+        // ================================
         java.util.Stack<Integer> pilaEstados = new java.util.Stack<>();
         java.util.List<String> pilaVista = new java.util.ArrayList<>();
 
@@ -448,10 +542,12 @@ public class AnalizadorLR0 {
 
         while (true) {
             int estado = pilaEstados.peek();
-            String a = entrada.get(iEntrada);
+            String a = entrada.get(iEntrada);  // "num", "mas", ... o "$"
 
             String pilaStr   = String.join(" ", pilaVista);
-            String cadenaStr = String.join(" ", entrada.subList(iEntrada, entrada.size()));
+            // ⬇⬇⬇ aquí usamos LOS LEXEMAS ORIGINALES
+            String cadenaStr = String.join(" ",
+                    entradaLexemas.subList(iEntrada, entradaLexemas.size()));
             String accionStr;
 
             Integer colTerm = idxTerm.get(a);
@@ -471,35 +567,37 @@ public class AnalizadorLR0 {
                 break;
             }
 
-            // SHIFT
+            // =========================
+            // SHIFT  -> "d<numEstado>"
+            // =========================
             if (accion.startsWith("d")) {
                 int nuevoEstado = Integer.parseInt(accion.substring(1));
-                accionStr = "shift " + nuevoEstado;
+                accionStr = "d" + nuevoEstado;  // <-- solo d5, d10, etc.
+
                 pasos.add(new String[]{pilaStr, cadenaStr, accionStr});
 
                 pilaEstados.push(nuevoEstado);
-                pilaVista.add(a);
+                pilaVista.add(a); // aquí seguimos mostrando nombre de terminal
                 pilaVista.add(String.valueOf(nuevoEstado));
                 iEntrada++;
                 continue;
             }
 
-            // REDUCE
+            // =========================
+            // REDUCE -> "r<numRegla>"
+            // =========================
             if (accion.startsWith("r")) {
                 int numReg = Integer.parseInt(accion.substring(1));
-                LadoIzq reg = descRecG.reglas[numReg];
+                LadoIzq reg = obtenerReglaLR0(numReg);
                 int len = reg.ladoDerecho.size();
                 String A = reg.simIzq.nombSimb;
 
-                StringBuilder sb = new StringBuilder();
-                sb.append("reduce r").append(numReg).append(": ").append(A).append(" →");
-                for (SimbolG s : reg.ladoDerecho) sb.append(" ").append(s.nombSimb);
-                accionStr = sb.toString();
-
+                // Solo "rX"
+                accionStr = "r" + numReg;
                 pasos.add(new String[]{pilaStr, cadenaStr, accionStr});
 
                 // Pop de la pila
-                for (int k = 0; k < len; k++) {
+                for (int k2 = 0; k2 < len; k2++) {
                     pilaEstados.pop();
                     if (!pilaVista.isEmpty()) pilaVista.remove(pilaVista.size() - 1);
                     if (!pilaVista.isEmpty()) pilaVista.remove(pilaVista.size() - 1);
@@ -531,9 +629,11 @@ public class AnalizadorLR0 {
                 continue;
             }
 
-            // ACCEPT
+            // =========================
+            // ACCEPT -> "acc"
+            // =========================
             if ("acc".equals(accion)) {
-                accionStr = "accept";
+                accionStr = "acc";
                 pasos.add(new String[]{pilaStr, cadenaStr, accionStr});
                 aceptada = true;
                 break;
@@ -552,6 +652,5 @@ public class AnalizadorLR0 {
 
         return pasos;
     }
-
 
 }

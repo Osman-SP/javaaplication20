@@ -4,7 +4,6 @@
  */
 package javaapplication20;
 
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import javax.swing.JOptionPane;
@@ -123,7 +122,6 @@ public class PanelLL1 extends javax.swing.JPanel {
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        txtGram = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         txtRutaArchivo = new javax.swing.JTextField();
@@ -145,6 +143,8 @@ public class PanelLL1 extends javax.swing.JPanel {
         jButton5 = new javax.swing.JButton();
         txtRutaArchivo2 = new javax.swing.JTextField();
         jButton6 = new javax.swing.JButton();
+        jScrollPane7 = new javax.swing.JScrollPane();
+        txtGram = new javax.swing.JTextArea();
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -192,13 +192,6 @@ public class PanelLL1 extends javax.swing.JPanel {
 
         jLabel2.setText("Gramática:");
         jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(14, 101, -1, -1));
-
-        txtGram.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtGramActionPerformed(evt);
-            }
-        });
-        jPanel1.add(txtGram, new org.netbeans.lib.awtextra.AbsoluteConstraints(83, 101, 401, 169));
 
         jButton1.setBackground(new java.awt.Color(255, 153, 0));
         jButton1.setFont(new java.awt.Font("Rockwell", 1, 12)); // NOI18N
@@ -356,12 +349,14 @@ public class PanelLL1 extends javax.swing.JPanel {
         });
         jPanel1.add(jButton6, new org.netbeans.lib.awtextra.AbsoluteConstraints(757, 153, -1, -1));
 
+        txtGram.setColumns(20);
+        txtGram.setRows(5);
+        jScrollPane7.setViewportView(txtGram);
+
+        jPanel1.add(jScrollPane7, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 100, 400, 170));
+
         add(jPanel1, java.awt.BorderLayout.LINE_START);
     }// </editor-fold>//GEN-END:initComponents
-
-    private void txtGramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtGramActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtGramActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         String texto = txtGram.getText().trim();
@@ -591,13 +586,14 @@ public class PanelLL1 extends javax.swing.JPanel {
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
+    private javax.swing.JScrollPane jScrollPane7;
     private javax.swing.JTable jTable1;
     private javax.swing.JTable tablaAnalisis;
     private javax.swing.JTable tablaLL1;
     private javax.swing.JTable tablaNoTerminal;
     private javax.swing.JTable tablaTerminal;
     private javax.swing.JTable tblLexico;
-    private javax.swing.JTextField txtGram;
+    private javax.swing.JTextArea txtGram;
     private javax.swing.JTextField txtRutaArchivo;
     private javax.swing.JTextField txtRutaArchivo2;
     private javax.swing.JTextField txtSigma;
